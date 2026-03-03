@@ -15,21 +15,24 @@ STATE_PATH = os.environ.get("STATE_PATH", "state/cemaden_seen.json").strip()
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
+# Controles anti-flood / anti-carga
 MAX_NEW_ALERTS_PER_RUN = int(os.environ.get("MAX_NEW_ALERTS_PER_RUN", "500"))
 SLEEP_BETWEEN_SENDS_SEC = float(os.environ.get("SLEEP_BETWEEN_SENDS_SEC", "1.2"))
 REQUEST_TIMEOUT_SEC = int(os.environ.get("REQUEST_TIMEOUT_SEC", "30"))
 
+# Telegram retry
 TG_MAX_RETRIES = int(os.environ.get("TG_MAX_RETRIES", "6"))
 TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
 
+# Se quiser mandar uma mensagem resumo quando tiver corte por limite
 SEND_SUMMARY_WHEN_CAPPED = os.environ.get("SEND_SUMMARY_WHEN_CAPPED", "1").strip() == "1"
 
 TZ = ZoneInfo("America/Sao_Paulo")
-TG_TEXT_LIMIT = 3800
+TG_TEXT_LIMIT = 3800  # margem abaixo do limite real do Telegram
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/3.2"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/4.0"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -81,6 +84,7 @@ def tg_send(text: str) -> None:
 
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="replace")
+
             retry_after = None
             try:
                 j = json.loads(body)
@@ -118,6 +122,7 @@ def chunks_by_lines(text: str, limit: int):
 
 
 def esc_md(s: str) -> str:
+    # escape básico para não quebrar Markdown
     if s is None:
         return ""
     s = str(s)
@@ -149,13 +154,13 @@ def nivel_key(nivel: str) -> str:
 
 
 def nivel_chip(nivel_key_str: str) -> str:
-    # você pediu: Moderado laranja, Alto vermelho, Muito Alto roxo
-    if nivel_key_str == "MODERADO":
-        return "🟧 *MODERADO*"
-    if nivel_key_str == "ALTO":
-        return "🟥 *ALTO*"
+    # CEMADEN: Muito Alto = vermelho, Alto = laranja, Moderado = amarelo
     if nivel_key_str == "MUITO ALTO":
-        return "🟪 *MUITO ALTO*"
+        return "🟥 *MUITO ALTO*"
+    if nivel_key_str == "ALTO":
+        return "🟧 *ALTO*"
+    if nivel_key_str == "MODERADO":
+        return "🟨 *MODERADO*"
     return "⬜ *OUTRO*"
 
 
@@ -177,6 +182,10 @@ def tipologia_icon(tip: str) -> str:
 
 
 def fmt_dt(dt_str: str) -> str:
+    """
+    Entrada: '2026-03-03 03:00:40.051'
+    Saída: '03/03 03:00'
+    """
     s = (dt_str or "").strip()
     if not s:
         return ""
@@ -197,6 +206,39 @@ def item_line(a: dict) -> str:
     return f"{mun} (Cód: {cod} - Data:{dt})"
 
 
+def build_global_summary(alertas_vigentes: list[dict], conjunto_atualizado: str) -> str:
+    cnt_lvl = {"MUITO ALTO": 0, "ALTO": 0, "MODERADO": 0, "OUTRO": 0}
+    cnt_tip = {"Hidrológico": 0, "Movimento de Massa": 0, "Outro": 0}
+
+    for a in alertas_vigentes:
+        niv = nivel_key(str(a.get("nivel", "")))
+        tip = tipologia(str(a.get("evento", "")))
+        cnt_lvl[niv] = cnt_lvl.get(niv, 0) + 1
+        cnt_tip[tip] = cnt_tip.get(tip, 0) + 1
+
+    total = sum(cnt_lvl.values())
+    now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
+
+    linhas = [
+        "📊 *Resumo Geral CEMADEN*",
+        f"Conjunto: {esc_md(conjunto_atualizado) if conjunto_atualizado else '-'}",
+        f"Atualização: {esc_md(now_brt)} (BRT)",
+        "",
+        f"Total de alertas vigentes: {total}",
+        "",
+        "*Níveis Abertos*",
+        f"🟥 Muito Alto: {cnt_lvl['MUITO ALTO']}",
+        f"🟧 Alto: {cnt_lvl['ALTO']}",
+        f"🟨 Moderado: {cnt_lvl['MODERADO']}",
+        "",
+        "*Tipos de Alertas*",
+        f"⛰️ Mov. Massa: {cnt_tip.get('Movimento de Massa', 0)}",
+        f"💧 Risco Hidrológico: {cnt_tip.get('Hidrológico', 0)}",
+    ]
+
+    return "\n".join(linhas)
+
+
 def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
     # uf -> tipologia -> nivel -> itens
     grouped: dict[str, dict[str, dict[str, list[dict]]]] = {}
@@ -215,9 +257,9 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
     for uf in sorted(grouped.keys()):
         uf_block = grouped[uf]
 
-        # resumo por nível
+        # resumo por nível (dentro da UF)
         cnt_lvl = {"MUITO ALTO": 0, "ALTO": 0, "MODERADO": 0, "OUTRO": 0}
-        # resumo por tipo
+        # resumo por tipo (dentro da UF)
         cnt_tip = {"Hidrológico": 0, "Movimento de Massa": 0, "Outro": 0}
 
         for tip, tip_block in uf_block.items():
@@ -225,14 +267,11 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
                 cnt_lvl[niv] = cnt_lvl.get(niv, 0) + len(items)
                 cnt_tip[tip] = cnt_tip.get(tip, 0) + len(items)
 
-        resumo_linhas = [
-            f"🟪 {cnt_lvl['MUITO ALTO']}  🟥 {cnt_lvl['ALTO']}  🟧 {cnt_lvl['MODERADO']}",
-            f"💧 {cnt_tip.get('Hidrológico', 0)}  ⛰️ {cnt_tip.get('Movimento de Massa', 0)}",
-        ]
-
+        # topo da mensagem do estado
         lines = [
             f"📣 *Alertas {esc_md(uf)}* (novos)",
-            *resumo_linhas,
+            f"🟥 {cnt_lvl['MUITO ALTO']}  🟧 {cnt_lvl['ALTO']}  🟨 {cnt_lvl['MODERADO']}",
+            f"💧 {cnt_tip.get('Hidrológico', 0)}  ⛰️ {cnt_tip.get('Movimento de Massa', 0)}",
             "",
         ]
 
@@ -267,10 +306,12 @@ def main() -> int:
     seen = state.get("seen", {})
 
     data = http_get_json(CEMADEN_URL)
+    conjunto_atualizado = str(data.get("atualizado", "")).strip()
 
     alertas = data.get("alertas", [])
-    alertas = [a for a in alertas if a.get("status") == 1]
+    alertas = [a for a in alertas if a.get("status") == 1]  # só vigentes
 
+    # novos = cod_alerta que não existia no state
     novos = []
     for a in alertas:
         cod = str(a.get("cod_alerta"))
@@ -294,9 +335,13 @@ def main() -> int:
             tg_send(
                 "⚠️ *CEMADEN*\n"
                 f"Foram detectados {total} alertas novos, mas processei só {len(enviar)} nesta rodada.\n"
-                f"Horário: {esc_md(now_brt)}\n"
+                f"Atualização: {esc_md(now_brt)} (BRT)\n"
                 "Os demais entram nas próximas execuções."
             )
+
+    # resumo geral no fim de cada rodada (mesmo se não teve novos, eu acho útil)
+    # se você quiser só quando houver novidade, é só envolver com: if enviar:
+    tg_send(build_global_summary(alertas, conjunto_atualizado))
 
     # marca todos os vigentes como vistos
     for a in alertas:
