@@ -16,21 +16,22 @@ TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 # Controles anti-flood / anti-carga
-MAX_NEW_ALERTS_PER_RUN = int(os.environ.get("MAX_NEW_ALERTS_PER_RUN", "20"))
-SLEEP_BETWEEN_SENDS_SEC = float(os.environ.get("SLEEP_BETWEEN_SENDS_SEC", "2.0"))
+MAX_NEW_ALERTS_PER_RUN = int(os.environ.get("MAX_NEW_ALERTS_PER_RUN", "200"))  # agora pode ser bem maior
+SLEEP_BETWEEN_SENDS_SEC = float(os.environ.get("SLEEP_BETWEEN_SENDS_SEC", "1.2"))
 REQUEST_TIMEOUT_SEC = int(os.environ.get("REQUEST_TIMEOUT_SEC", "30"))
 
-# Quando o Telegram pedir retry_after, tentamos de novo algumas vezes
-TG_MAX_RETRIES = int(os.environ.get("TG_MAX_RETRIES", "5"))
+# Telegram limits / retry
+TG_MAX_RETRIES = int(os.environ.get("TG_MAX_RETRIES", "6"))
 TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
 
 SEND_SUMMARY_WHEN_CAPPED = os.environ.get("SEND_SUMMARY_WHEN_CAPPED", "1").strip() == "1"
 
 TZ = ZoneInfo("America/Sao_Paulo")
+TG_TEXT_LIMIT = 3800  # margem abaixo do limite real
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/2.2"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/3.0"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -81,7 +82,6 @@ def tg_send(text: str) -> None:
 
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="replace")
-            # tenta parsear o JSON de erro do Telegram
             retry_after = None
             try:
                 j = json.loads(body)
@@ -94,7 +94,6 @@ def tg_send(text: str) -> None:
                 if attempt > TG_MAX_RETRIES:
                     print("Telegram 429 excedeu tentativas. Último body:", body)
                     raise
-
                 wait_s = float(retry_after) + TG_EXTRA_BACKOFF_SEC
                 print(f"Telegram 429, esperando {wait_s:.1f}s e tentando de novo (tentativa {attempt}/{TG_MAX_RETRIES})")
                 backoff = wait_s
@@ -102,6 +101,24 @@ def tg_send(text: str) -> None:
 
             print("Telegram HTTPError:", e.code, body)
             raise
+
+
+def chunks_by_lines(text: str, limit: int):
+    """
+    Quebra por linhas pra não cortar no meio.
+    """
+    lines = (text or "").splitlines()
+    buf = ""
+    for line in lines:
+        add = line + "\n"
+        if len(buf) + len(add) > limit:
+            if buf.strip():
+                yield buf.rstrip("\n")
+            buf = add
+        else:
+            buf += add
+    if buf.strip():
+        yield buf.rstrip("\n")
 
 
 def nivel_rank(nivel: str) -> int:
@@ -115,50 +132,105 @@ def nivel_rank(nivel: str) -> int:
     return 0
 
 
-def emoji_nivel(nivel: str) -> str:
+def nivel_label(nivel: str) -> str:
     n = (nivel or "").strip().lower()
     if n == "muito alto":
-        return "🟥"
+        return "MUITO ALTO"
     if n == "alto":
-        return "🟧"
+        return "ALTO"
     if n == "moderado":
-        return "🟨"
-    return "⬜"
+        return "MODERADO"
+    return "OUTRO"
 
 
 def tipologia(evento: str) -> str:
     e = (evento or "").lower()
-    if "mov" in e:
-        return "Mov. de Massa"
     if "hidrol" in e:
         return "Hidrológico"
+    if "mov" in e:
+        return "Movimento de Massa"
     return "Outro"
 
 
-def fmt_alert(a: dict) -> str:
-    uf = str(a.get("uf", "")).strip()
-    mun = str(a.get("municipio", "")).strip()
-    ev = str(a.get("evento", "")).strip()
-    niv = str(a.get("nivel", "")).strip()
-    cri = str(a.get("datahoracriacao", "")).strip()
-    atu = str(a.get("ult_atualizacao", "")).strip()
-    codibge = a.get("codibge", "")
-    cod_alerta = a.get("cod_alerta", "")
-    lat = a.get("latitude", "")
-    lon = a.get("longitude", "")
+def fmt_dt(dt_str: str) -> str:
+    """
+    Entrada vem tipo '2026-03-03 03:00:40.051'.
+    Saída '03/03 03:00' (horário como está no texto, sem inventar fuso).
+    """
+    s = (dt_str or "").strip()
+    if not s:
+        return ""
+    try:
+        base = s.split(".")[0]  # remove ms
+        d, t = base.split(" ")
+        yyyy, mm, dd = d.split("-")
+        hh, mi, _ss = t.split(":")
+        return f"{dd}/{mm} {hh}:{mi}"
+    except Exception:
+        return s
 
-    lines = [
-        "📣 CEMADEN",
-        f"{emoji_nivel(niv)} {uf} {mun}",
-        f"{tipologia(ev)} | {niv}",
-        f"Evento: {ev}",
-        f"IBGE: {codibge} | cod_alerta: {cod_alerta}",
-        f"Criado: {cri}",
-        f"Atual.: {atu}",
-    ]
-    if lat != "" and lon != "":
-        lines.append(f"Coord: {lat}, {lon}")
-    return "\n".join(lines)
+
+def item_line(a: dict) -> str:
+    mun = str(a.get("municipio", "")).strip()
+    cod = str(a.get("cod_alerta", "")).strip()
+    dt = fmt_dt(str(a.get("datahoracriacao", "")).strip())
+    return f"{mun} (Cód: {cod} - Data:{dt})"
+
+
+def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
+    """
+    Retorna lista de mensagens prontas (cada uma <= TG_TEXT_LIMIT).
+    Agrupa por UF -> Tipologia -> Nível.
+    """
+    # estrutura: uf -> tipologia -> nivel -> [itens]
+    grouped: dict[str, dict[str, dict[str, list[dict]]]] = {}
+
+    for a in alertas_novos:
+        uf = str(a.get("uf", "")).strip() or "??"
+        tip = tipologia(str(a.get("evento", "")))
+        niv = nivel_label(str(a.get("nivel", "")))
+
+        grouped.setdefault(uf, {}).setdefault(tip, {}).setdefault(niv, []).append(a)
+
+    # ordem desejada
+    tip_order = ["Hidrológico", "Movimento de Massa", "Outro"]
+    niv_order = ["MUITO ALTO", "ALTO", "MODERADO", "OUTRO"]
+
+    messages: list[str] = []
+
+    for uf in sorted(grouped.keys()):
+        header = f"📣 Alertas {uf} (novos)"
+        lines = [header, ""]
+
+        uf_block = grouped[uf]
+
+        for tip in tip_order:
+            if tip not in uf_block:
+                continue
+
+            lines.append(f"{tip}:")
+            tip_block = uf_block[tip]
+
+            # ordenar níveis por gravidade
+            for niv in niv_order:
+                items = tip_block.get(niv, [])
+                if not items:
+                    continue
+
+                # ordena por município, só pra ficar estável
+                items.sort(key=lambda a: (str(a.get("municipio", "")), -nivel_rank(a.get("nivel", ""))))
+
+                joined = "; ".join(item_line(a) for a in items)
+                lines.append(f"{niv}: {joined}")
+            lines.append("")  # espaço entre tipologias
+
+        text = "\n".join(lines).strip()
+
+        # quebra caso estoure limite
+        for part in chunks_by_lines(text, TG_TEXT_LIMIT):
+            messages.append(part)
+
+    return messages
 
 
 def main() -> int:
@@ -176,26 +248,26 @@ def main() -> int:
         if cod and cod not in seen:
             novos.append(a)
 
-    novos.sort(key=lambda a: (-nivel_rank(a.get("nivel", "")), a.get("uf", ""), a.get("municipio", "")))
+    # limita por rodada (agora o padrão é alto)
+    total = len(novos)
+    enviar = novos[:MAX_NEW_ALERTS_PER_RUN]
 
-    if not novos:
+    if not enviar:
         print("Sem novos alertas.")
     else:
-        total = len(novos)
-        enviar = novos[:MAX_NEW_ALERTS_PER_RUN]
-
-        for idx, a in enumerate(enviar, start=1):
-            tg_send(fmt_alert(a))
-            if idx < len(enviar):
+        msgs = build_messages_by_uf(enviar)
+        for i, msg in enumerate(msgs, start=1):
+            tg_send(msg)
+            if i < len(msgs):
                 time.sleep(SLEEP_BETWEEN_SENDS_SEC)
 
         if total > len(enviar) and SEND_SUMMARY_WHEN_CAPPED:
             now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
             tg_send(
                 "⚠️ CEMADEN\n"
-                f"Foram detectados {total} alertas novos, mas enviei só {len(enviar)} nesta rodada.\n"
+                f"Foram detectados {total} alertas novos, mas processei só {len(enviar)} nesta rodada.\n"
                 f"Horário: {now_brt}\n"
-                "Os demais serão enviados nas próximas execuções."
+                "Os demais entram nas próximas execuções."
             )
 
     # marca todos os vigentes como vistos
