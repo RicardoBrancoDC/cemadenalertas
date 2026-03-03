@@ -20,14 +20,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Run watcher
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          CEMADEN_URL: "https://painelalertas.cemaden.gov.br/wsAlertas2"
-          STATE_PATH: "state/cemaden_seen.json"
-        run: |
-          python cemaden_watch.py
+     - name: Run watcher
+  env:
+    TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    CEMADEN_URL: "https://painelalertas.cemaden.gov.br/wsAlertas2"
+    STATE_PATH: "state/cemaden_seen.json"
+
+    # controles anti-flood / anti-carga
+    MAX_NEW_ALERTS_PER_RUN: "15"
+    SLEEP_BETWEEN_SENDS_SEC: "1.5"
+    REQUEST_TIMEOUT_SEC: "30"
+    SEND_SUMMARY_WHEN_CAPPED: "1"
+  run: |
+    python cemaden_watch.py
 
       - name: Commit state if changed
         run: |
