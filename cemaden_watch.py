@@ -16,18 +16,21 @@ TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 # Controles anti-flood / anti-carga
-MAX_NEW_ALERTS_PER_RUN = int(os.environ.get("MAX_NEW_ALERTS_PER_RUN", "10"))  # máximo de alertas novos por execução
-SLEEP_BETWEEN_SENDS_SEC = float(os.environ.get("SLEEP_BETWEEN_SENDS_SEC", "1.2"))  # pausa entre mensagens
+MAX_NEW_ALERTS_PER_RUN = int(os.environ.get("MAX_NEW_ALERTS_PER_RUN", "20"))
+SLEEP_BETWEEN_SENDS_SEC = float(os.environ.get("SLEEP_BETWEEN_SENDS_SEC", "2.0"))
 REQUEST_TIMEOUT_SEC = int(os.environ.get("REQUEST_TIMEOUT_SEC", "30"))
 
-# Se quiser mandar uma mensagem resumo quando tiver corte por limite
+# Quando o Telegram pedir retry_after, tentamos de novo algumas vezes
+TG_MAX_RETRIES = int(os.environ.get("TG_MAX_RETRIES", "5"))
+TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
+
 SEND_SUMMARY_WHEN_CAPPED = os.environ.get("SEND_SUMMARY_WHEN_CAPPED", "1").strip() == "1"
 
 TZ = ZoneInfo("America/Sao_Paulo")
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/2.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/2.2"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -46,11 +49,7 @@ def save_state(path: str, data: dict) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def tg_send(text: str) -> None:
-    if not TG_TOKEN or not TG_CHAT_ID:
-        print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Saindo sem enviar.")
-        return
-
+def _tg_send_once(text: str) -> None:
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     payload = json.dumps(
         {
@@ -61,13 +60,48 @@ def tg_send(text: str) -> None:
     ).encode("utf-8")
 
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
-            _ = resp.read()
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        print("Telegram HTTPError:", e.code, body)
-        raise
+    with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
+        _ = resp.read()
+
+
+def tg_send(text: str) -> None:
+    if not TG_TOKEN or not TG_CHAT_ID:
+        print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Saindo sem enviar.")
+        return
+
+    attempt = 0
+    backoff = 0.0
+
+    while True:
+        try:
+            if backoff > 0:
+                time.sleep(backoff)
+            _tg_send_once(text)
+            return
+
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            # tenta parsear o JSON de erro do Telegram
+            retry_after = None
+            try:
+                j = json.loads(body)
+                retry_after = (j.get("parameters") or {}).get("retry_after")
+            except Exception:
+                pass
+
+            if e.code == 429 and retry_after is not None:
+                attempt += 1
+                if attempt > TG_MAX_RETRIES:
+                    print("Telegram 429 excedeu tentativas. Último body:", body)
+                    raise
+
+                wait_s = float(retry_after) + TG_EXTRA_BACKOFF_SEC
+                print(f"Telegram 429, esperando {wait_s:.1f}s e tentando de novo (tentativa {attempt}/{TG_MAX_RETRIES})")
+                backoff = wait_s
+                continue
+
+            print("Telegram HTTPError:", e.code, body)
+            raise
 
 
 def nivel_rank(nivel: str) -> int:
@@ -136,14 +170,12 @@ def main() -> int:
     alertas = data.get("alertas", [])
     alertas = [a for a in alertas if a.get("status") == 1]  # só vigentes
 
-    # novos = cod_alerta que não existia no state
     novos = []
     for a in alertas:
         cod = str(a.get("cod_alerta"))
         if cod and cod not in seen:
             novos.append(a)
 
-    # ordena: manda primeiro o mais grave
     novos.sort(key=lambda a: (-nivel_rank(a.get("nivel", "")), a.get("uf", ""), a.get("municipio", "")))
 
     if not novos:
@@ -161,12 +193,12 @@ def main() -> int:
             now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
             tg_send(
                 "⚠️ CEMADEN\n"
-                f"Foram detectados {total} alertas novos, mas enviei só {len(enviar)} nesta rodada "
-                f"(limite MAX_NEW_ALERTS_PER_RUN).\n"
-                f"Horário: {now_brt}"
+                f"Foram detectados {total} alertas novos, mas enviei só {len(enviar)} nesta rodada.\n"
+                f"Horário: {now_brt}\n"
+                "Os demais serão enviados nas próximas execuções."
             )
 
-    # atualiza o state marcando TODOS os vigentes atuais como vistos
+    # marca todos os vigentes como vistos
     for a in alertas:
         cod = str(a.get("cod_alerta"))
         ult = str(a.get("ult_atualizacao"))
