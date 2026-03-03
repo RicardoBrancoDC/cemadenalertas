@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import json
 import os
-import sys
 import urllib.request
+import urllib.error
+import html
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -13,12 +16,15 @@ TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 TZ = ZoneInfo("America/Sao_Paulo")
+TG_MAX = 3500  # margem segura abaixo do limite do Telegram
+
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/1.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/1.1"})
     with urllib.request.urlopen(req, timeout=30) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
+
 
 def load_state(path: str) -> dict:
     if not os.path.exists(path):
@@ -26,10 +32,19 @@ def load_state(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 def save_state(path: str, data: dict) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def chunks(s: str, size: int):
+    s = (s or "").strip()
+    while s:
+        yield s[:size]
+        s = s[size:]
+
 
 def tg_send(text: str) -> None:
     if not TG_TOKEN or not TG_CHAT_ID:
@@ -37,16 +52,28 @@ def tg_send(text: str) -> None:
         return
 
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    payload = json.dumps({
-        "chat_id": TG_CHAT_ID,
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": True
-    }).encode("utf-8")
 
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        _ = resp.read()
+    for part in chunks(text, TG_MAX):
+        payload = json.dumps(
+            {
+                "chat_id": int(TG_CHAT_ID),
+                "text": part,
+                "parse_mode": "HTML",
+                "disable_web_page_preview": True,
+            }
+        ).encode("utf-8")
+
+        req = urllib.request.Request(
+            url, data=payload, headers={"Content-Type": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                _ = resp.read()
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            print("Telegram HTTPError:", e.code, body)
+            raise
+
 
 def nivel_rank(nivel: str) -> int:
     n = (nivel or "").strip().lower()
@@ -58,6 +85,7 @@ def nivel_rank(nivel: str) -> int:
         return 1
     return 0
 
+
 def emoji_nivel(nivel: str) -> str:
     n = (nivel or "").strip().lower()
     if n == "muito alto":
@@ -68,6 +96,7 @@ def emoji_nivel(nivel: str) -> str:
         return "🟨"
     return "⬜"
 
+
 def tipologia(evento: str) -> str:
     e = (evento or "").lower()
     if "mov" in e:
@@ -76,33 +105,39 @@ def tipologia(evento: str) -> str:
         return "Hidrológico"
     return "Outro"
 
+
 def fmt_alert(a: dict) -> str:
-    # datas vêm como "YYYY-MM-DD HH:MM:SS.mmm"
-    cri = a.get("datahoracriacao", "")
-    atu = a.get("ult_atualizacao", "")
+    uf = html.escape(str(a.get("uf", "")))
+    mun = html.escape(str(a.get("municipio", "")))
+    ev = html.escape(str(a.get("evento", "")))
+    niv = html.escape(str(a.get("nivel", "")))
+    cri = html.escape(str(a.get("datahoracriacao", "")))
+    atu = html.escape(str(a.get("ult_atualizacao", "")))
+
     return (
-        f"{emoji_nivel(a.get('nivel'))} <b>{a.get('uf','')}</b> {a.get('municipio','')}\n"
-        f"{tipologia(a.get('evento',''))} | <b>{a.get('nivel','')}</b>\n"
-        f"Evento: {a.get('evento','')}\n"
+        f"{emoji_nivel(a.get('nivel'))} <b>{uf}</b> {mun}\n"
+        f"{tipologia(a.get('evento',''))} | <b>{niv}</b>\n"
+        f"Evento: {ev}\n"
         f"IBGE: {a.get('codibge','')} | cod_alerta: {a.get('cod_alerta','')}\n"
         f"Criado: {cri}\n"
         f"Atual.: {atu}"
     )
 
+
 def main() -> int:
     data = http_get_json(CEMADEN_URL)
     alertas = data.get("alertas", [])
-    atualizado = data.get("atualizado", "")
+    atualizado = str(data.get("atualizado", ""))
 
-    # só vigentes
+    # somente vigentes
     alertas = [a for a in alertas if a.get("status") == 1]
 
     state = load_state(STATE_PATH)
     seen = state.get("seen", {})  # cod_alerta -> ult_atualizacao
 
     novos = []
-    atualizados = []
-    vigentes_agora = {}
+    atualizados_list = []
+    vigentes_agora = {}  # cod_alerta -> ult_atualizacao
 
     for a in alertas:
         cod = str(a.get("cod_alerta"))
@@ -112,56 +147,53 @@ def main() -> int:
         if cod not in seen:
             novos.append(a)
         elif seen.get(cod) != ult:
-            atualizados.append(a)
+            atualizados_list.append(a)
 
-    encerrados = []
-    for cod in list(seen.keys()):
-        if cod not in vigentes_agora:
-            encerrados.append(cod)
+    encerrados = [cod for cod in seen.keys() if cod not in vigentes_agora]
 
-    # ordena para mensagem ficar boa
-    def sort_key(a):
-        return (-nivel_rank(a.get("nivel","")), a.get("uf",""), a.get("municipio",""))
+    def sort_key(a: dict):
+        return (-nivel_rank(a.get("nivel", "")), a.get("uf", ""), a.get("municipio", ""))
 
     novos.sort(key=sort_key)
-    atualizados.sort(key=sort_key)
+    atualizados_list.sort(key=sort_key)
 
-    # monta mensagem
-    if not novos and not atualizados:
+    if not novos and not atualizados_list:
         print("Sem novidades.")
     else:
         now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
-        parts = [f"📡 <b>CEMADEN</b> | atualização {now_brt}\nConjunto: {atualizado}"]
+        parts = [
+            f"📡 <b>CEMADEN</b> | atualização {now_brt}",
+            f"Conjunto: {html.escape(atualizado)}",
+        ]
 
         if novos:
             parts.append(f"\n<b>Novos alertas vigentes ({len(novos)}):</b>")
             for a in novos[:30]:
                 parts.append("\n" + fmt_alert(a))
             if len(novos) > 30:
-                parts.append(f"\n... e mais {len(novos)-30} novos (cortei pra não virar bíblia).")
+                parts.append(f"\n... e mais {len(novos) - 30} novos (cortei pra não ficar enorme).")
 
-        if atualizados:
-            parts.append(f"\n<b>Alertas atualizados ({len(atualizados)}):</b>")
-            for a in atualizados[:30]:
+        if atualizados_list:
+            parts.append(f"\n<b>Alertas atualizados ({len(atualizados_list)}):</b>")
+            for a in atualizados_list[:30]:
                 parts.append("\n" + fmt_alert(a))
-            if len(atualizados) > 30:
-                parts.append(f"\n... e mais {len(atualizados)-30} atualizados.")
+            if len(atualizados_list) > 30:
+                parts.append(f"\n... e mais {len(atualizados_list) - 30} atualizados (cortei pra não ficar enorme).")
 
-        # opcional: avisar encerrados (só ids)
-        # se quiser, eu mudo pra mostrar município/UF também, mas aí precisamos guardar mais coisa no state
         if encerrados:
-            parts.append(f"\n<b>Encerrados desde a última checagem ({len(encerrados)}):</b> " + ", ".join(encerrados[:50]))
+            sample = ", ".join(encerrados[:50])
+            parts.append(f"\n<b>Encerrados desde a última checagem ({len(encerrados)}):</b> {html.escape(sample)}")
             if len(encerrados) > 50:
-                parts.append(f"... +{len(encerrados)-50}")
+                parts.append(f"... +{len(encerrados) - 50}")
 
         tg_send("\n".join(parts))
 
-    # atualiza state
     state["seen"] = vigentes_agora
     state["last_run"] = datetime.now(timezone.utc).isoformat()
     save_state(STATE_PATH, state)
 
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
