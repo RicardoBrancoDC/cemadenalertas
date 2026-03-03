@@ -27,7 +27,7 @@ TZ = ZoneInfo("America/Sao_Paulo")
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/2.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/2.1"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -101,7 +101,7 @@ def tipologia(evento: str) -> str:
     return "Outro"
 
 
-def fmt_alert(a: dict, conjunto_atualizado: str) -> str:
+def fmt_alert(a: dict) -> str:
     uf = str(a.get("uf", "")).strip()
     mun = str(a.get("municipio", "")).strip()
     ev = str(a.get("evento", "")).strip()
@@ -113,9 +113,8 @@ def fmt_alert(a: dict, conjunto_atualizado: str) -> str:
     lat = a.get("latitude", "")
     lon = a.get("longitude", "")
 
-    # texto puro, estável
     lines = [
-        f"📣 CEMADEN",
+        "📣 CEMADEN",
         f"{emoji_nivel(niv)} {uf} {mun}",
         f"{tipologia(ev)} | {niv}",
         f"Evento: {ev}",
@@ -125,17 +124,14 @@ def fmt_alert(a: dict, conjunto_atualizado: str) -> str:
     ]
     if lat != "" and lon != "":
         lines.append(f"Coord: {lat}, {lon}")
-    if conjunto_atualizado:
-        lines.append(f"Conjunto: {conjunto_atualizado}")
     return "\n".join(lines)
 
 
 def main() -> int:
     state = load_state(STATE_PATH)
-    seen = state.get("seen", {})  # cod_alerta -> ult_atualizacao (ou qualquer marcador)
+    seen = state.get("seen", {})  # cod_alerta -> ult_atualizacao
 
     data = http_get_json(CEMADEN_URL)
-    atualizado = str(data.get("atualizado", "")).strip()
 
     alertas = data.get("alertas", [])
     alertas = [a for a in alertas if a.get("status") == 1]  # só vigentes
@@ -157,8 +153,7 @@ def main() -> int:
         enviar = novos[:MAX_NEW_ALERTS_PER_RUN]
 
         for idx, a in enumerate(enviar, start=1):
-            tg_send(fmt_alert(a, atualizado))
-            # pausa entre envios, pra não martelar
+            tg_send(fmt_alert(a))
             if idx < len(enviar):
                 time.sleep(SLEEP_BETWEEN_SENDS_SEC)
 
@@ -168,12 +163,10 @@ def main() -> int:
                 "⚠️ CEMADEN\n"
                 f"Foram detectados {total} alertas novos, mas enviei só {len(enviar)} nesta rodada "
                 f"(limite MAX_NEW_ALERTS_PER_RUN).\n"
-                f"Horário: {now_brt}\n"
-                f"Conjunto: {atualizado}"
+                f"Horário: {now_brt}"
             )
 
-    # atualiza o state marcando TODOS os vigentes atuais como vistos,
-    # assim não reenvia na próxima rodada.
+    # atualiza o state marcando TODOS os vigentes atuais como vistos
     for a in alertas:
         cod = str(a.get("cod_alerta"))
         ult = str(a.get("ult_atualizacao"))
