@@ -1,0 +1,42 @@
+name: CEMADEN Watch
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run watcher
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CEMADEN_URL: "https://painelalertas.cemaden.gov.br/wsAlertas2"
+          STATE_PATH: "state/cemaden_seen.json"
+        run: |
+          python cemaden_watch.py
+
+      - name: Commit state if changed
+        run: |
+          if git status --porcelain | grep -q "state/cemaden_seen.json"; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add state/cemaden_seen.json
+            git commit -m "Update CEMADEN state"
+            git push
+          else
+            echo "No state changes."
+          fi
