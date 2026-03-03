@@ -26,8 +26,10 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CEMADEN_URL: "https://painelalertas.cemaden.gov.br/wsAlertas2"
           STATE_PATH: "state/cemaden_seen.json"
-          MAX_NEW_ALERTS_PER_RUN: "35"
+          MAX_NEW_ALERTS_PER_RUN: "20"
           SLEEP_BETWEEN_SENDS_SEC: "2"
+          TG_MAX_RETRIES: "6"
+         TG_EXTRA_BACKOFF_SEC: "1.0"
           REQUEST_TIMEOUT_SEC: "30"
           SEND_SUMMARY_WHEN_CAPPED: "1"
         run: |
