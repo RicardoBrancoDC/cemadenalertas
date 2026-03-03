@@ -5,7 +5,6 @@ import json
 import os
 import urllib.request
 import urllib.error
-import html
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -16,11 +15,11 @@ TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
 TZ = ZoneInfo("America/Sao_Paulo")
-TG_MAX = 3500  # margem segura abaixo do limite do Telegram
+TG_MAX = 3500  # margem segura
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/1.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/1.2"})
     with urllib.request.urlopen(req, timeout=30) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -39,11 +38,24 @@ def save_state(path: str, data: dict) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def chunks(s: str, size: int):
-    s = (s or "").strip()
-    while s:
-        yield s[:size]
-        s = s[size:]
+def chunk_lines(text: str, max_len: int):
+    """
+    Quebra por linhas, nunca no meio da linha.
+    Assim a mensagem fica sempre íntegra e legível.
+    """
+    lines = (text or "").splitlines()
+    buf = ""
+    for line in lines:
+        # +1 por causa do "\n"
+        add = line + "\n"
+        if len(buf) + len(add) > max_len:
+            if buf.strip():
+                yield buf.rstrip("\n")
+            buf = add
+        else:
+            buf += add
+    if buf.strip():
+        yield buf.rstrip("\n")
 
 
 def tg_send(text: str) -> None:
@@ -53,12 +65,11 @@ def tg_send(text: str) -> None:
 
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
 
-    for part in chunks(text, TG_MAX):
+    for part in chunk_lines(text, TG_MAX):
         payload = json.dumps(
             {
                 "chat_id": int(TG_CHAT_ID),
                 "text": part,
-                "parse_mode": "HTML",
                 "disable_web_page_preview": True,
             }
         ).encode("utf-8")
@@ -66,6 +77,7 @@ def tg_send(text: str) -> None:
         req = urllib.request.Request(
             url, data=payload, headers={"Content-Type": "application/json"}
         )
+
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 _ = resp.read()
@@ -107,18 +119,20 @@ def tipologia(evento: str) -> str:
 
 
 def fmt_alert(a: dict) -> str:
-    uf = html.escape(str(a.get("uf", "")))
-    mun = html.escape(str(a.get("municipio", "")))
-    ev = html.escape(str(a.get("evento", "")))
-    niv = html.escape(str(a.get("nivel", "")))
-    cri = html.escape(str(a.get("datahoracriacao", "")))
-    atu = html.escape(str(a.get("ult_atualizacao", "")))
+    uf = str(a.get("uf", "")).strip()
+    mun = str(a.get("municipio", "")).strip()
+    ev = str(a.get("evento", "")).strip()
+    niv = str(a.get("nivel", "")).strip()
+    cri = str(a.get("datahoracriacao", "")).strip()
+    atu = str(a.get("ult_atualizacao", "")).strip()
+    codibge = a.get("codibge", "")
+    cod_alerta = a.get("cod_alerta", "")
 
     return (
-        f"{emoji_nivel(a.get('nivel'))} <b>{uf}</b> {mun}\n"
-        f"{tipologia(a.get('evento',''))} | <b>{niv}</b>\n"
+        f"{emoji_nivel(niv)} {uf} {mun}\n"
+        f"{tipologia(ev)} | {niv}\n"
         f"Evento: {ev}\n"
-        f"IBGE: {a.get('codibge','')} | cod_alerta: {a.get('cod_alerta','')}\n"
+        f"IBGE: {codibge} | cod_alerta: {cod_alerta}\n"
         f"Criado: {cri}\n"
         f"Atual.: {atu}"
     )
@@ -127,7 +141,7 @@ def fmt_alert(a: dict) -> str:
 def main() -> int:
     data = http_get_json(CEMADEN_URL)
     alertas = data.get("alertas", [])
-    atualizado = str(data.get("atualizado", ""))
+    atualizado = str(data.get("atualizado", "")).strip()
 
     # somente vigentes
     alertas = [a for a in alertas if a.get("status") == 1]
@@ -161,28 +175,35 @@ def main() -> int:
         print("Sem novidades.")
     else:
         now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
-        parts = [
-            f"📡 <b>CEMADEN</b> | atualização {now_brt}",
-            f"Conjunto: {html.escape(atualizado)}",
-        ]
+        parts = []
+        parts.append(f"📡 CEMADEN | atualização {now_brt}")
+        if atualizado:
+            parts.append(f"Conjunto: {atualizado}")
 
         if novos:
-            parts.append(f"\n<b>Novos alertas vigentes ({len(novos)}):</b>")
+            parts.append("")
+            parts.append(f"Novos alertas vigentes ({len(novos)}):")
             for a in novos[:30]:
-                parts.append("\n" + fmt_alert(a))
+                parts.append("")
+                parts.append(fmt_alert(a))
             if len(novos) > 30:
-                parts.append(f"\n... e mais {len(novos) - 30} novos (cortei pra não ficar enorme).")
+                parts.append("")
+                parts.append(f"... e mais {len(novos) - 30} novos (cortei pra não ficar enorme).")
 
         if atualizados_list:
-            parts.append(f"\n<b>Alertas atualizados ({len(atualizados_list)}):</b>")
+            parts.append("")
+            parts.append(f"Alertas atualizados ({len(atualizados_list)}):")
             for a in atualizados_list[:30]:
-                parts.append("\n" + fmt_alert(a))
+                parts.append("")
+                parts.append(fmt_alert(a))
             if len(atualizados_list) > 30:
-                parts.append(f"\n... e mais {len(atualizados_list) - 30} atualizados (cortei pra não ficar enorme).")
+                parts.append("")
+                parts.append(f"... e mais {len(atualizados_list) - 30} atualizados (cortei pra não ficar enorme).")
 
         if encerrados:
+            parts.append("")
             sample = ", ".join(encerrados[:50])
-            parts.append(f"\n<b>Encerrados desde a última checagem ({len(encerrados)}):</b> {html.escape(sample)}")
+            parts.append(f"Encerrados desde a última checagem ({len(encerrados)}): {sample}")
             if len(encerrados) > 50:
                 parts.append(f"... +{len(encerrados) - 50}")
 
