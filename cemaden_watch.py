@@ -4,44 +4,47 @@
 import json
 import os
 import time
-import math
 import uuid
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any
 
-# ========= CONFIG =========
+# =========================
+# CONFIG
+# =========================
 
 CEMADEN_URL = os.environ.get("CEMADEN_URL", "https://painelalertas.cemaden.gov.br/wsAlertas2").strip()
 STATE_PATH = os.environ.get("STATE_PATH", "state/cemaden_seen.json").strip()
 
-# GeoJSON de UFs (coloque no repo)
+# GeoJSON das UFs (use o estadosBrasil2.json do painel, mas versionado no seu repo)
 UF_GEOJSON_PATH = os.environ.get("UF_GEOJSON_PATH", "resources/estadosBrasil2.json").strip()
 
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Anti-carga / estabilidade
 REQUEST_TIMEOUT_SEC = int(os.environ.get("REQUEST_TIMEOUT_SEC", "30"))
 SLEEP_BETWEEN_SENDS_SEC = float(os.environ.get("SLEEP_BETWEEN_SENDS_SEC", "1.2"))
 
 TG_MAX_RETRIES = int(os.environ.get("TG_MAX_RETRIES", "6"))
 TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
 
-# Limites práticos do Telegram
-MAX_TG_MESSAGE_LEN = 4096  # limite conhecido do sendMessage :contentReference[oaicite:0]{index=0}
-MAX_CITIES_PER_LINE = int(os.environ.get("MAX_CITIES_PER_LINE", "30"))  # corta listas gigantes
-SEND_MAPS = os.environ.get("SEND_MAPS", "1").strip() == "1"  # manda mapas das UFs com novos alertas
+# Segurança pra não mandar texto enorme (Telegram)
+MAX_TG_MESSAGE_LEN = 4096
+MAX_CITIES_PER_LINE = int(os.environ.get("MAX_CITIES_PER_LINE", "35"))
+
+SEND_MAPS = os.environ.get("SEND_MAPS", "1").strip() == "1"
 
 TZ = ZoneInfo("America/Sao_Paulo")
 
+# =========================
+# HTTP / STATE
+# =========================
 
-# ========= UTIL =========
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/4.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/5.1"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -51,7 +54,12 @@ def load_state(path: str) -> dict:
     if not os.path.exists(path):
         return {"seen_ids": {}, "last_conjunto": None, "last_run": None}
     with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        st = json.load(f)
+    if "seen_ids" not in st:
+        st["seen_ids"] = {}
+    if "last_conjunto" not in st:
+        st["last_conjunto"] = None
+    return st
 
 
 def save_state(path: str, data: dict) -> None:
@@ -60,6 +68,11 @@ def save_state(path: str, data: dict) -> None:
         os.makedirs(d, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+# =========================
+# TELEGRAM
+# =========================
 
 
 def _tg_request_json(method: str, payload: dict) -> dict:
@@ -71,17 +84,29 @@ def _tg_request_json(method: str, payload: dict) -> dict:
     return json.loads(raw)
 
 
-def tg_send_text(text: str) -> None:
-    if not TG_TOKEN or not TG_CHAT_ID:
-        print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Não vou enviar nada.")
-        return
+def split_message(text: str, max_len: int) -> List[str]:
+    if len(text) <= max_len:
+        return [text]
 
-    # quebra em pedaços se passar do limite
-    parts = split_message(text, MAX_TG_MESSAGE_LEN)
-    for i, part in enumerate(parts, start=1):
-        _tg_send_text_with_retry(part)
-        if i < len(parts):
-            time.sleep(SLEEP_BETWEEN_SENDS_SEC)
+    parts: List[str] = []
+    cur = ""
+    for line in text.split("\n"):
+        add = (line + "\n")
+        if len(cur) + len(add) <= max_len:
+            cur += add
+        else:
+            if cur.strip():
+                parts.append(cur.rstrip("\n"))
+            cur = add
+            if len(cur) > max_len:
+                # fallback: quebra bruto
+                s = cur
+                cur = ""
+                for i in range(0, len(s), max_len):
+                    parts.append(s[i : i + max_len])
+    if cur.strip():
+        parts.append(cur.rstrip("\n"))
+    return parts
 
 
 def _tg_send_text_with_retry(text: str) -> None:
@@ -105,17 +130,27 @@ def _tg_send_text_with_retry(text: str) -> None:
     raise last_err
 
 
+def tg_send_text(text: str) -> None:
+    if not TG_TOKEN or not TG_CHAT_ID:
+        print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Não vou enviar nada.")
+        return
+
+    parts = split_message(text, MAX_TG_MESSAGE_LEN)
+    for i, part in enumerate(parts, start=1):
+        _tg_send_text_with_retry(part)
+        if i < len(parts):
+            time.sleep(SLEEP_BETWEEN_SENDS_SEC)
+
+
 def tg_send_photo(photo_path: str, caption: str = "") -> None:
     """
     Envia imagem via sendPhoto com multipart/form-data.
-    (o método sendPhoto aceita upload multipart) :contentReference[oaicite:1]{index=1}
     """
     if not TG_TOKEN or not TG_CHAT_ID:
         print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Não vou enviar nada.")
         return
 
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
-
     boundary = "----cemadenwatch-" + uuid.uuid4().hex
     crlf = "\r\n"
 
@@ -141,7 +176,7 @@ def tg_send_photo(photo_path: str, caption: str = "") -> None:
     body = b"".join(
         [
             part_field("chat_id", str(int(TG_CHAT_ID))),
-            part_field("caption", caption[:1024]),  # caption tem limite menor
+            part_field("caption", (caption or "")[:900]),
             file_part_header,
             file_bytes,
             end,
@@ -169,28 +204,9 @@ def tg_send_photo(photo_path: str, caption: str = "") -> None:
     raise last_err
 
 
-def split_message(text: str, max_len: int) -> List[str]:
-    if len(text) <= max_len:
-        return [text]
-
-    parts = []
-    cur = ""
-    for line in text.split("\n"):
-        # +1 por causa do \n
-        if len(cur) + len(line) + 1 <= max_len:
-            cur = (cur + "\n" + line) if cur else line
-        else:
-            if cur:
-                parts.append(cur)
-            cur = line
-            if len(cur) > max_len:
-                # fallback bruto se uma linha for enorme
-                for i in range(0, len(cur), max_len):
-                    parts.append(cur[i : i + max_len])
-                cur = ""
-    if cur:
-        parts.append(cur)
-    return parts
+# =========================
+# NORMALIZAÇÃO / REGRAS
+# =========================
 
 
 def norm(s: Any) -> str:
@@ -209,7 +225,7 @@ def nivel_rank(nivel: str) -> int:
 
 
 def emoji_nivel_cemaden(nivel: str) -> str:
-    # cores do painel (Moderado amarelo, Alto laranja, Muito Alto vermelho)
+    # cores do painel: Moderado amarelo, Alto laranja, Muito Alto vermelho
     n = norm(nivel).lower()
     if n == "muito alto":
         return "🟥"
@@ -226,65 +242,74 @@ def tipologia(evento: str) -> str:
         return "Hidrológico"
     if "mov" in e:
         return "Movimento de Massa"
-    # se vier outro no futuro, cai aqui
     return "Outro"
 
 
 def fmt_dt_short(dt_str: str) -> str:
     """
     Entrada típica: '2026-03-03 03:00:40.051'
-    Saída: '03/03 03:00'
+    Saída: '03/03 00:00' no BRT (a origem geralmente está em UTC no backend)
     """
     s = norm(dt_str)
     if not s:
         return "-"
-    try:
-        # tenta com ms
-        d = datetime.strptime(s, "%Y-%m-%d %H:%M:%S.%f").replace(tzinfo=timezone.utc)
-    except Exception:
+    for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
         try:
-            d = datetime.strptime(s, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            d = datetime.strptime(s, fmt).replace(tzinfo=timezone.utc)
+            return d.astimezone(TZ).strftime("%d/%m %H:%M")
         except Exception:
-            return s
-    d_brt = d.astimezone(TZ)
-    return d_brt.strftime("%d/%m %H:%M")
+            pass
+    return s
 
 
-# ========= GEOJSON UF =========
+# =========================
+# GEOJSON UFs (estadosBrasil2.json)
+# =========================
+
 
 def load_ufs_geojson(path: str) -> Tuple[Dict[str, Any], Dict[str, str]]:
     """
     Retorna:
-    - uf_geom: dict UF -> geometry
-    - uf_name: dict UF -> nome_uf
-    Espera propriedades: uf_05, nome_uf (como no estadosBrasil2.json que você mandou)
+      uf_geom: dict UF -> geometry
+      uf_name: dict UF -> nome_uf
+    Espera props: uf_05 e nome_uf (como no estadosBrasil2.json do painel).
     """
+    if not os.path.exists(path):
+        raise RuntimeError(f"UF_GEOJSON_PATH não encontrado: {path}")
+
     with open(path, "r", encoding="utf-8") as f:
         gj = json.load(f)
 
-    uf_geom = {}
-    uf_name = {}
-    for feat in gj.get("features", []):
-        props = feat.get("properties", {})
+    feats = gj.get("features", [])
+    if not feats:
+        raise RuntimeError("GeoJSON de UFs vazio ou sem 'features'.")
+
+    uf_geom: Dict[str, Any] = {}
+    uf_name: Dict[str, str] = {}
+    for feat in feats:
+        props = feat.get("properties", {}) or {}
         uf = norm(props.get("uf_05"))
         nome = norm(props.get("nome_uf"))
         geom = feat.get("geometry")
         if uf and geom:
             uf_geom[uf] = geom
             uf_name[uf] = nome or uf
+
+    if not uf_geom:
+        raise RuntimeError("Não consegui extrair geometrias por UF. Verifica se existe 'uf_05' nas properties.")
     return uf_geom, uf_name
 
 
 def _iter_polygons(geometry: dict) -> List[List[Tuple[float, float]]]:
     """
-    Retorna uma lista de anéis (x,y) para plot.
+    Retorna lista de anéis (x,y) para plot.
     GeoJSON usa [lon, lat].
     """
     if not geometry:
         return []
     gtype = geometry.get("type")
     coords = geometry.get("coordinates")
-    polys = []
+    polys: List[List[Tuple[float, float]]] = []
 
     if gtype == "Polygon":
         # coords: [ [ [lon,lat], ... ] , holes... ]
@@ -330,42 +355,43 @@ def make_state_map_png(
         ys = [p[1] for p in ring]
         ax.plot(xs, ys)
 
-    # cores do CEMADEN
+    # cores do painel
     color_by = {
         "Moderado": "yellow",
         "Alto": "orange",
         "Muito Alto": "red",
     }
 
-    # agrupa por nível
-    buckets = {"Muito Alto": [], "Alto": [], "Moderado": []}
+    buckets: Dict[str, List[Tuple[float, float]]] = {"Muito Alto": [], "Alto": [], "Moderado": []}
     for lon, lat, _label, nivel in points:
         niv = norm(nivel)
-        if niv not in buckets:
-            continue
-        buckets[niv].append((lon, lat))
+        if niv in buckets:
+            buckets[niv].append((lon, lat))
 
-    # plota por ordem de gravidade, pra ficar bonito (vermelho por cima)
+    # plota na ordem leve -> grave, mas o grave fica por cima porque vai por último
     for niv in ["Moderado", "Alto", "Muito Alto"]:
         pts = buckets.get(niv, [])
         if not pts:
             continue
         xs = [p[0] for p in pts]
         ys = [p[1] for p in pts]
-        ax.scatter(xs, ys, s=40, c=color_by[niv], label=niv, alpha=0.9)
+        ax.scatter(xs, ys, s=42, c=color_by[niv], label=niv, alpha=0.95)
 
-    ax.legend(loc="lower left", frameon=True)
+    if any(len(v) > 0 for v in buckets.values()):
+        ax.legend(loc="lower left", frameon=True)
+
     ax.set_title(title)
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
     ax.set_aspect("equal", adjustable="box")
 
     # bbox do polígono + folga
-    allx = []
-    ally = []
+    allx: List[float] = []
+    ally: List[float] = []
     for ring in rings:
         allx.extend([p[0] for p in ring])
         ally.extend([p[1] for p in ring])
+
     if allx and ally:
         xmin, xmax = min(allx), max(allx)
         ymin, ymax = min(ally), max(ally)
@@ -375,12 +401,16 @@ def make_state_map_png(
         ax.set_ylim(ymin - pady, ymax + pady)
 
     fig.tight_layout()
-    fig.savefig(out_path, dpi=160)
+    fig.savefig(out_path, dpi=170)
     plt.close(fig)
-    
-# ========= FORMATAÇÃO POR UF =========
 
-def summarize_panel(all_active: List[dict]) -> str:
+
+# =========================
+# MENSAGENS
+# =========================
+
+
+def summarize_panel(all_active: List[dict], conjunto_atualizado: str) -> str:
     total = len(all_active)
 
     by_level = {"Moderado": 0, "Alto": 0, "Muito Alto": 0}
@@ -408,6 +438,8 @@ def summarize_panel(all_active: List[dict]) -> str:
         "",
         f"🌊 Hidrológico: {by_type.get('Hidrológico', 0)}",
         f"⛰️ Movimento de Massa: {by_type.get('Movimento de Massa', 0)}",
+        "",
+        f"Conjunto: {conjunto_atualizado}",
     ]
     return "\n".join(lines)
 
@@ -418,7 +450,6 @@ def build_uf_message(
     new_alerts_uf: List[dict],
     conjunto_atualizado: str,
 ) -> str:
-    # contagem por tipo
     c_hidro = 0
     c_massa = 0
     for a in new_alerts_uf:
@@ -428,7 +459,6 @@ def build_uf_message(
         elif tp == "Movimento de Massa":
             c_massa += 1
 
-    # bucket: tipo -> nivel -> itens
     bucket: Dict[str, Dict[str, List[str]]] = {
         "Hidrológico": {"Muito Alto": [], "Alto": [], "Moderado": []},
         "Movimento de Massa": {"Muito Alto": [], "Alto": [], "Moderado": []},
@@ -460,60 +490,63 @@ def build_uf_message(
     ]
 
     def fmt_block(tp: str) -> List[str]:
-        out = [f"{'🌊' if tp=='Hidrológico' else '⛰️' if tp=='Movimento de Massa' else 'ℹ️'} {tp}:"]
+        icon = "🌊" if tp == "Hidrológico" else "⛰️" if tp == "Movimento de Massa" else "ℹ️"
+        out = [f"{icon} {tp}:"]
         had_any = False
+
         for niv in ("Muito Alto", "Alto", "Moderado"):
             items = bucket.get(tp, {}).get(niv, [])
             if not items:
                 continue
             had_any = True
-            icon = emoji_nivel_cemaden(niv)
-            # corta lista grande
+
             shown = items[:MAX_CITIES_PER_LINE]
             tail = "" if len(items) <= len(shown) else f" (+{len(items)-len(shown)} outros)"
-            out.append(f"{icon} {niv.upper()}: " + "; ".join(shown) + tail)
+            out.append(f"{emoji_nivel_cemaden(niv)} {niv.upper()}: " + "; ".join(shown) + tail)
+
         if not had_any:
             out.append("Sem novos itens nesse tipo.")
         out.append("")
         return out
 
-    body = []
-    # só mostra blocos que façam sentido
+    body: List[str] = []
     if c_hidro:
         body.extend(fmt_block("Hidrológico"))
     if c_massa:
         body.extend(fmt_block("Movimento de Massa"))
-    # se cair em "Outro"
-    other_count = len(bucket.get("Outro", {}).get("Moderado", [])) + len(bucket.get("Outro", {}).get("Alto", [])) + len(bucket.get("Outro", {}).get("Muito Alto", []))
+
+    other_count = sum(len(bucket.get("Outro", {}).get(niv, [])) for niv in ("Moderado", "Alto", "Muito Alto"))
     if other_count:
         body.extend(fmt_block("Outro"))
 
     return "\n".join(header + body).strip()
 
 
-# ========= MAIN =========
+# =========================
+# MAIN
+# =========================
+
 
 def main() -> int:
     state = load_state(STATE_PATH)
-    seen_ids = state.get("seen_ids", {})  # cod_alerta -> ult_atualizacao
+    seen_ids: Dict[str, str] = state.get("seen_ids", {})
     last_conjunto = state.get("last_conjunto")
 
     data = http_get_json(CEMADEN_URL)
     conjunto_atualizado = norm(data.get("atualizado"))
 
     alertas = data.get("alertas", [])
-    # só vigentes
     vigentes = [a for a in alertas if a.get("status") == 1]
 
-    # regra que você escolheu: só manda algo quando o "Conjunto" muda
+    # regra: só agir quando o conjunto mudar
     if conjunto_atualizado and last_conjunto == conjunto_atualizado:
-        print("Conjunto sem alteração. Não vou enviar resumo nem alertas.")
+        print("Conjunto sem alteração. Não vou enviar nada.")
         state["last_run"] = datetime.now(timezone.utc).isoformat()
         save_state(STATE_PATH, state)
         return 0
 
-    # identifica novos (por cod_alerta ainda não visto)
-    novos = []
+    # novos = ainda não vistos (cod_alerta)
+    novos: List[dict] = []
     for a in vigentes:
         cod = norm(a.get("cod_alerta"))
         if cod and cod not in seen_ids:
@@ -523,23 +556,23 @@ def main() -> int:
     novos_por_uf: Dict[str, List[dict]] = {}
     for a in novos:
         uf = norm(a.get("uf"))
-        if not uf:
-            continue
-        novos_por_uf.setdefault(uf, []).append(a)
+        if uf:
+            novos_por_uf.setdefault(uf, []).append(a)
 
-    # carrega geojson de UFs (para mapa e para pegar nome do estado)
-    uf_geom = {}
-    uf_nome = {}
-    try:
-        uf_geom, uf_nome = load_ufs_geojson(UF_GEOJSON_PATH)
-    except Exception as e:
-        print(f"Atenção: não consegui carregar UF_GEOJSON_PATH='{UF_GEOJSON_PATH}': {e}")
-        print("Vou seguir sem mapas e com nome do estado só pela sigla.")
-        SEND_MAPS_LOCAL = False
-    else:
-        SEND_MAPS_LOCAL = SEND_MAPS
+    # tenta carregar o geojson das UFs (para mapas e nomes)
+    uf_geom: Dict[str, Any] = {}
+    uf_nome: Dict[str, str] = {}
+    send_maps_local = False
+    if SEND_MAPS:
+        try:
+            uf_geom, uf_nome = load_ufs_geojson(UF_GEOJSON_PATH)
+            send_maps_local = True
+        except Exception as e:
+            print(f"Atenção: não consegui carregar UF_GEOJSON_PATH='{UF_GEOJSON_PATH}': {e}")
+            print("Vou seguir sem mapas.")
+            send_maps_local = False
 
-    # envia mensagens por UF (só UFs com novos alertas)
+    # se não tiver novos, ainda assim manda um aviso leve (porque o conjunto mudou)
     if not novos_por_uf:
         tg_send_text(
             "📣 CEMADEN\n"
@@ -547,7 +580,7 @@ def main() -> int:
             f"Conjunto: {conjunto_atualizado}"
         )
     else:
-        # ordena por gravidade máxima daquela UF, depois UF
+        # ordena UFs pelo nível máximo (mais grave primeiro)
         def uf_key(item: Tuple[str, List[dict]]) -> Tuple[int, str]:
             uf, arr = item
             maxrank = 0
@@ -556,45 +589,47 @@ def main() -> int:
             return (-maxrank, uf)
 
         for uf, arr in sorted(novos_por_uf.items(), key=uf_key):
-            # ordena dentro da UF (grave primeiro)
-            arr.sort(key=lambda a: (-nivel_rank(a.get("nivel")), tipologia(a.get("evento")), norm(a.get("municipio"))))
+            # ordena alertas dentro da UF: grave -> leve, depois tipo e cidade
+            arr.sort(
+                key=lambda a: (
+                    -nivel_rank(a.get("nivel")),
+                    tipologia(a.get("evento")),
+                    norm(a.get("municipio")),
+                )
+            )
 
             nome = uf_nome.get(uf, uf)
             msg = build_uf_message(uf, nome, arr, conjunto_atualizado)
             tg_send_text(msg)
             time.sleep(SLEEP_BETWEEN_SENDS_SEC)
 
-            # mapa da UF (só se tiver geojson carregado)
-            if SEND_MAPS_LOCAL and uf in uf_geom:
-pts = []
-for a in arr:
-    lat = a.get("latitude")
-    lon = a.get("longitude")
-    if lat is None or lon is None:
-        continue
-    try:
-        latf = float(lat)
-        lonf = float(lon)
-    except Exception:
-        continue
+            # mapa da UF com pontos por nível
+            if send_maps_local and uf in uf_geom:
+                pts: List[Tuple[float, float, str, str]] = []
+                for a in arr:
+                    lat = a.get("latitude")
+                    lon = a.get("longitude")
+                    if lat is None or lon is None:
+                        continue
+                    try:
+                        latf = float(lat)
+                        lonf = float(lon)
+                    except Exception:
+                        continue
+                    pts.append((lonf, latf, norm(a.get("municipio")), norm(a.get("nivel"))))
 
-    pts.append((lonf, latf, norm(a.get("municipio")), norm(a.get("nivel"))))
-
-                
                 if pts:
                     out_png = f"/tmp/map_{uf}.png"
-                    title = f"{nome} ({uf}) - novos alertas: {len(arr)}"
+                    title = f"{nome} ({uf}) | novos: {len(arr)}"
                     try:
                         make_state_map_png(uf, uf_geom, pts, out_png, title)
-                        tg_send_photo(out_png, caption=f"{nome} ({uf}) | Conjunto: {conjunto_atualizado}")
+                        tg_send_photo(out_png, caption=f"{nome} ({uf})\nConjunto: {conjunto_atualizado}")
                         time.sleep(SLEEP_BETWEEN_SENDS_SEC)
                     except Exception as e:
                         print(f"Falha ao gerar/enviar mapa da UF {uf}: {e}")
 
-    # resumo do painel, sempre que o conjunto mudar (mesmo que não tenha novos)
-    resumo = summarize_panel(vigentes)
-    resumo = resumo + f"\n\nConjunto: {conjunto_atualizado}"
-    tg_send_text(resumo)
+    # resumo geral do painel sempre que o conjunto mudar
+    tg_send_text(summarize_panel(vigentes, conjunto_atualizado))
 
     # atualiza state: marca todos os vigentes como vistos
     for a in vigentes:
