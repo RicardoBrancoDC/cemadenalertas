@@ -19,9 +19,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
+      - name: Install deps
+      
+        run: 
+          pip install geopandas shapely pyproj matplotlib
       - name: Run watcher
+      
         env:
+          UF_GEOJSON_PATH: "resources/br_uf.geojson"
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CEMADEN_URL: "https://painelalertas.cemaden.gov.br/wsAlertas2"
