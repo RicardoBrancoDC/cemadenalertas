@@ -303,12 +303,13 @@ def _iter_polygons(geometry: dict) -> List[List[Tuple[float, float]]]:
 def make_state_map_png(
     uf: str,
     uf_geom: Dict[str, Any],
-    points: List[Tuple[float, float, str]],
+    points: List[Tuple[float, float, str, str]],
     out_path: str,
     title: str,
 ) -> None:
     """
-    points: lista de (lon, lat, label)
+    points: lista de (lon, lat, label, nivel)
+    nivel esperado: 'Moderado' | 'Alto' | 'Muito Alto'
     """
     import matplotlib.pyplot as plt
 
@@ -323,24 +324,43 @@ def make_state_map_png(
     fig = plt.figure(figsize=(6.5, 6.5))
     ax = fig.add_subplot(111)
 
-    # desenha contorno(s)
+    # contorno(s) do estado
     for ring in rings:
         xs = [p[0] for p in ring]
         ys = [p[1] for p in ring]
         ax.plot(xs, ys)
 
-    # pontos
-    if points:
-        xs = [p[0] for p in points]
-        ys = [p[1] for p in points]
-        ax.scatter(xs, ys)
+    # cores do CEMADEN
+    color_by = {
+        "Moderado": "yellow",
+        "Alto": "orange",
+        "Muito Alto": "red",
+    }
 
+    # agrupa por nível
+    buckets = {"Muito Alto": [], "Alto": [], "Moderado": []}
+    for lon, lat, _label, nivel in points:
+        niv = norm(nivel)
+        if niv not in buckets:
+            continue
+        buckets[niv].append((lon, lat))
+
+    # plota por ordem de gravidade, pra ficar bonito (vermelho por cima)
+    for niv in ["Moderado", "Alto", "Muito Alto"]:
+        pts = buckets.get(niv, [])
+        if not pts:
+            continue
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        ax.scatter(xs, ys, s=40, c=color_by[niv], label=niv, alpha=0.9)
+
+    ax.legend(loc="lower left", frameon=True)
     ax.set_title(title)
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
     ax.set_aspect("equal", adjustable="box")
 
-    # zoom automático: usa bbox do polígono e expande um pouco
+    # bbox do polígono + folga
     allx = []
     ally = []
     for ring in rings:
@@ -357,8 +377,7 @@ def make_state_map_png(
     fig.tight_layout()
     fig.savefig(out_path, dpi=160)
     plt.close(fig)
-
-
+    
 # ========= FORMATAÇÃO POR UF =========
 
 def summarize_panel(all_active: List[dict]) -> str:
@@ -547,18 +566,21 @@ def main() -> int:
 
             # mapa da UF (só se tiver geojson carregado)
             if SEND_MAPS_LOCAL and uf in uf_geom:
-                pts = []
-                for a in arr:
-                    lat = a.get("latitude")
-                    lon = a.get("longitude")
-                    if lat is None or lon is None:
-                        continue
-                    try:
-                        latf = float(lat)
-                        lonf = float(lon)
-                    except Exception:
-                        continue
-                    pts.append((lonf, latf, norm(a.get("municipio"))))
+pts = []
+for a in arr:
+    lat = a.get("latitude")
+    lon = a.get("longitude")
+    if lat is None or lon is None:
+        continue
+    try:
+        latf = float(lat)
+        lonf = float(lon)
+    except Exception:
+        continue
+
+    pts.append((lonf, latf, norm(a.get("municipio")), norm(a.get("nivel"))))
+
+                
                 if pts:
                     out_png = f"/tmp/map_{uf}.png"
                     title = f"{nome} ({uf}) - novos alertas: {len(arr)}"
