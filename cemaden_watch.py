@@ -24,7 +24,6 @@ REQUEST_TIMEOUT_SEC = int(os.environ.get("REQUEST_TIMEOUT_SEC", "30"))
 TG_MAX_RETRIES = int(os.environ.get("TG_MAX_RETRIES", "6"))
 TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
 
-# Se quiser mandar uma mensagem resumo quando tiver corte por limite
 SEND_SUMMARY_WHEN_CAPPED = os.environ.get("SEND_SUMMARY_WHEN_CAPPED", "1").strip() == "1"
 
 TZ = ZoneInfo("America/Sao_Paulo")
@@ -32,7 +31,7 @@ TG_TEXT_LIMIT = 3800  # margem abaixo do limite real do Telegram
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/4.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/4.2"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -40,7 +39,7 @@ def http_get_json(url: str) -> dict:
 
 def load_state(path: str) -> dict:
     if not os.path.exists(path):
-        return {"seen": {}, "last_run": None}
+        return {"seen": {}, "last_run": None, "last_conjunto": None}
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -122,7 +121,6 @@ def chunks_by_lines(text: str, limit: int):
 
 
 def esc_md(s: str) -> str:
-    # escape básico para não quebrar Markdown
     if s is None:
         return ""
     s = str(s)
@@ -182,10 +180,6 @@ def tipologia_icon(tip: str) -> str:
 
 
 def fmt_dt(dt_str: str) -> str:
-    """
-    Entrada: '2026-03-03 03:00:40.051'
-    Saída: '03/03 03:00'
-    """
     s = (dt_str or "").strip()
     if not s:
         return ""
@@ -235,12 +229,10 @@ def build_global_summary(alertas_vigentes: list[dict], conjunto_atualizado: str)
         f"⛰️ Mov. Massa: {cnt_tip.get('Movimento de Massa', 0)}",
         f"💧 Risco Hidrológico: {cnt_tip.get('Hidrológico', 0)}",
     ]
-
     return "\n".join(linhas)
 
 
 def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
-    # uf -> tipologia -> nivel -> itens
     grouped: dict[str, dict[str, dict[str, list[dict]]]] = {}
 
     for a in alertas_novos:
@@ -257,9 +249,7 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
     for uf in sorted(grouped.keys()):
         uf_block = grouped[uf]
 
-        # resumo por nível (dentro da UF)
         cnt_lvl = {"MUITO ALTO": 0, "ALTO": 0, "MODERADO": 0, "OUTRO": 0}
-        # resumo por tipo (dentro da UF)
         cnt_tip = {"Hidrológico": 0, "Movimento de Massa": 0, "Outro": 0}
 
         for tip, tip_block in uf_block.items():
@@ -267,7 +257,6 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
                 cnt_lvl[niv] = cnt_lvl.get(niv, 0) + len(items)
                 cnt_tip[tip] = cnt_tip.get(tip, 0) + len(items)
 
-        # topo da mensagem do estado
         lines = [
             f"📣 *Alertas {esc_md(uf)}* (novos)",
             f"🟥 {cnt_lvl['MUITO ALTO']}  🟧 {cnt_lvl['ALTO']}  🟨 {cnt_lvl['MODERADO']}",
@@ -294,7 +283,6 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
             lines.append("")
 
         text = "\n".join(lines).strip()
-
         for part in chunks_by_lines(text, TG_TEXT_LIMIT):
             messages.append(part)
 
@@ -304,12 +292,13 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
 def main() -> int:
     state = load_state(STATE_PATH)
     seen = state.get("seen", {})
+    last_conjunto = str(state.get("last_conjunto") or "").strip()
 
     data = http_get_json(CEMADEN_URL)
     conjunto_atualizado = str(data.get("atualizado", "")).strip()
 
     alertas = data.get("alertas", [])
-    alertas = [a for a in alertas if a.get("status") == 1]  # só vigentes
+    alertas = [a for a in alertas if a.get("status") == 1]
 
     # novos = cod_alerta que não existia no state
     novos = []
@@ -318,32 +307,37 @@ def main() -> int:
         if cod and cod not in seen:
             novos.append(a)
 
-    total = len(novos)
+    total_novos = len(novos)
     enviar = novos[:MAX_NEW_ALERTS_PER_RUN]
 
-    if not enviar:
-        print("Sem novos alertas.")
-    else:
+    # 1) manda novos alertas (sempre)
+    if enviar:
         msgs = build_messages_by_uf(enviar)
         for i, msg in enumerate(msgs, start=1):
             tg_send(msg)
             if i < len(msgs):
                 time.sleep(SLEEP_BETWEEN_SENDS_SEC)
 
-        if total > len(enviar) and SEND_SUMMARY_WHEN_CAPPED:
+        if total_novos > len(enviar) and SEND_SUMMARY_WHEN_CAPPED:
             now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
             tg_send(
                 "⚠️ *CEMADEN*\n"
-                f"Foram detectados {total} alertas novos, mas processei só {len(enviar)} nesta rodada.\n"
+                f"Foram detectados {total_novos} alertas novos, mas processei só {len(enviar)} nesta rodada.\n"
                 f"Atualização: {esc_md(now_brt)} (BRT)\n"
                 "Os demais entram nas próximas execuções."
             )
 
-    # resumo geral no fim de cada rodada (mesmo se não teve novos, eu acho útil)
-    # se você quiser só quando houver novidade, é só envolver com: if enviar:
-    tg_send(build_global_summary(alertas, conjunto_atualizado))
+    else:
+        print("Sem novos alertas.")
 
-    # marca todos os vigentes como vistos
+    # 2) resumo geral: só quando o 'conjunto' mudar (independente de horário)
+    conjunto_mudou = (conjunto_atualizado != "" and conjunto_atualizado != last_conjunto)
+    if conjunto_mudou:
+        tg_send(build_global_summary(alertas, conjunto_atualizado))
+    else:
+        print("Resumo suprimido: conjunto não mudou.")
+
+    # 3) marca todos os vigentes como vistos
     for a in alertas:
         cod = str(a.get("cod_alerta"))
         ult = str(a.get("ult_atualizacao"))
@@ -352,6 +346,7 @@ def main() -> int:
 
     state["seen"] = seen
     state["last_run"] = datetime.now(timezone.utc).isoformat()
+    state["last_conjunto"] = conjunto_atualizado
     save_state(STATE_PATH, state)
 
     return 0
