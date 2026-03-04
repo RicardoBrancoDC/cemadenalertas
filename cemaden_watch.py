@@ -9,8 +9,12 @@ import urllib.error
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
 CEMADEN_URL = os.environ.get("CEMADEN_URL", "https://painelalertas.cemaden.gov.br/wsAlertas2").strip()
 STATE_PATH = os.environ.get("STATE_PATH", "state/cemaden_seen.json").strip()
+UF_GEOJSON_PATH = os.environ.get("UF_GEOJSON_PATH", "resources/br_uf.geojson").strip()
 
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
@@ -29,7 +33,7 @@ TG_TEXT_LIMIT = 3800
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/4.3"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/5.0"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -108,6 +112,53 @@ def tg_send(text: str) -> None:
             raise
 
 
+def tg_send_photo(path: str, caption: str = "") -> None:
+    if not TG_TOKEN or not TG_CHAT_ID:
+        print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Saindo sem enviar.")
+        return
+
+    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
+    boundary = "----cemadenwatchboundary"
+
+    with open(path, "rb") as f:
+        img = f.read()
+
+    parts = []
+
+    def add_field(name: str, value: str):
+        parts.append(f"--{boundary}\r\n".encode("utf-8"))
+        parts.append(f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode("utf-8"))
+        parts.append(value.encode("utf-8"))
+        parts.append(b"\r\n")
+
+    def add_file(name: str, filename: str, content: bytes):
+        parts.append(f"--{boundary}\r\n".encode("utf-8"))
+        parts.append(
+            (
+                f'Content-Disposition: form-data; name="{name}"; filename="{filename}"\r\n'
+                f"Content-Type: image/png\r\n\r\n"
+            ).encode("utf-8")
+        )
+        parts.append(content)
+        parts.append(b"\r\n")
+
+    add_field("chat_id", str(TG_CHAT_ID))
+    if caption:
+        add_field("caption", caption)
+        add_field("parse_mode", "Markdown")
+
+    add_file("photo", os.path.basename(path), img)
+    parts.append(f"--{boundary}--\r\n".encode("utf-8"))
+
+    body = b"".join(parts)
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+    )
+    urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC).read()
+
+
 def chunks_by_lines(text: str, limit: int):
     lines = (text or "").splitlines()
     buf = ""
@@ -130,6 +181,10 @@ def esc_md(s: str) -> str:
     for ch in ["_", "*", "`", "["]:
         s = s.replace(ch, "\\" + ch)
     return s
+
+
+def normalize_conjunto(s: str) -> str:
+    return " ".join((s or "").strip().split())
 
 
 def nivel_rank(nivel: str) -> int:
@@ -155,6 +210,7 @@ def nivel_key(nivel: str) -> str:
 
 
 def nivel_chip(nivel_key_str: str) -> str:
+    # CEMADEN: Muito Alto = vermelho, Alto = laranja, Moderado = amarelo
     if nivel_key_str == "MUITO ALTO":
         return "🟥 *MUITO ALTO*"
     if nivel_key_str == "ALTO":
@@ -202,55 +258,30 @@ def item_line(a: dict) -> str:
     return f"{mun} (Cód: {cod} - Data:{dt})"
 
 
-def build_global_summary(alertas_vigentes: list[dict], conjunto_atualizado: str) -> str:
-    cnt_lvl = {"MUITO ALTO": 0, "ALTO": 0, "MODERADO": 0, "OUTRO": 0}
-    cnt_tip = {"Hidrológico": 0, "Movimento de Massa": 0, "Outro": 0}
-
-    for a in alertas_vigentes:
-        niv = nivel_key(str(a.get("nivel", "")))
-        tip = tipologia(str(a.get("evento", "")))
-        cnt_lvl[niv] = cnt_lvl.get(niv, 0) + 1
-        cnt_tip[tip] = cnt_tip.get(tip, 0) + 1
-
-    total = sum(cnt_lvl.values())
-    now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
-
-    return "\n".join(
-        [
-            "📊 *Resumo Geral CEMADEN*",
-            f"Conjunto: {esc_md(conjunto_atualizado) if conjunto_atualizado else '-'}",
-            f"Atualização: {esc_md(now_brt)} (BRT)",
-            "",
-            f"Total de alertas vigentes: {total}",
-            "",
-            "*Níveis Abertos*",
-            f"🟥 Muito Alto: {cnt_lvl['MUITO ALTO']}",
-            f"🟧 Alto: {cnt_lvl['ALTO']}",
-            f"🟨 Moderado: {cnt_lvl['MODERADO']}",
-            "",
-            "*Tipos de Alertas*",
-            f"⛰️ Mov. Massa: {cnt_tip.get('Movimento de Massa', 0)}",
-            f"💧 Risco Hidrológico: {cnt_tip.get('Hidrológico', 0)}",
-        ]
-    )
+def group_new_alerts_by_uf(alertas_novos: list[dict]) -> dict[str, list[dict]]:
+    out: dict[str, list[dict]] = {}
+    for a in alertas_novos:
+        uf = str(a.get("uf", "")).strip() or "??"
+        out.setdefault(uf, []).append(a)
+    return out
 
 
-def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
-    grouped: dict[str, dict[str, dict[str, list[dict]]]] = {}
+def build_messages_by_uf(alertas_novos: list[dict]) -> dict[str, list[str]]:
+    grouped_uf: dict[str, dict[str, dict[str, list[dict]]]] = {}
 
     for a in alertas_novos:
         uf = str(a.get("uf", "")).strip() or "??"
         tip = tipologia(str(a.get("evento", "")))
         niv = nivel_key(str(a.get("nivel", "")))
-        grouped.setdefault(uf, {}).setdefault(tip, {}).setdefault(niv, []).append(a)
+        grouped_uf.setdefault(uf, {}).setdefault(tip, {}).setdefault(niv, []).append(a)
 
     tip_order = ["Hidrológico", "Movimento de Massa", "Outro"]
     niv_order = ["MUITO ALTO", "ALTO", "MODERADO", "OUTRO"]
 
-    messages: list[str] = []
+    result: dict[str, list[str]] = {}
 
-    for uf in sorted(grouped.keys()):
-        uf_block = grouped[uf]
+    for uf in sorted(grouped_uf.keys()):
+        uf_block = grouped_uf[uf]
 
         cnt_lvl = {"MUITO ALTO": 0, "ALTO": 0, "MODERADO": 0, "OUTRO": 0}
         cnt_tip = {"Hidrológico": 0, "Movimento de Massa": 0, "Outro": 0}
@@ -286,15 +317,121 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
             lines.append("")
 
         text = "\n".join(lines).strip()
-        for part in chunks_by_lines(text, TG_TEXT_LIMIT):
-            messages.append(part)
+        parts = list(chunks_by_lines(text, TG_TEXT_LIMIT))
+        result[uf] = parts
 
-    return messages
+    return result
 
 
-def normalize_conjunto(s: str) -> str:
-    # deixa bem estável pra comparar
-    return " ".join((s or "").strip().split())
+def _load_uf_gdf(path: str) -> tuple[gpd.GeoDataFrame, str]:
+    gdf = gpd.read_file(path)
+
+    col = None
+    for c in ["sigla", "uf", "UF", "SIGLA", "Uf", "Sigla"]:
+        if c in gdf.columns:
+            col = c
+            break
+    if col is None:
+        raise RuntimeError("GeoJSON não tem coluna de UF. Esperava algo como: sigla ou uf.")
+
+    # padroniza pra facilitar filtro
+    gdf[col] = gdf[col].astype(str).str.upper().str.strip()
+
+    # garante CRS comum
+    try:
+        if gdf.crs is None:
+            # se não tiver CRS, assume WGS84
+            gdf = gdf.set_crs("EPSG:4326")
+        else:
+            gdf = gdf.to_crs("EPSG:4326")
+    except Exception:
+        pass
+
+    return gdf, col
+
+
+def gerar_mapa_uf(alertas_uf_novos: list[dict], uf: str, uf_gdf: gpd.GeoDataFrame, col_uf: str) -> str:
+    uf = (uf or "").upper().strip()
+    uf_row = uf_gdf[uf_gdf[col_uf] == uf]
+    if uf_row.empty:
+        print(f"UF {uf} não encontrada no GeoJSON, pulando mapa.")
+        return ""
+
+    lats = []
+    lons = []
+    for a in alertas_uf_novos:
+        lat = a.get("latitude")
+        lon = a.get("longitude")
+        if lat is None or lon is None:
+            continue
+        try:
+            lats.append(float(lat))
+            lons.append(float(lon))
+        except Exception:
+            pass
+
+    if not lats:
+        return ""
+
+    fig = plt.figure(figsize=(6, 6))
+    ax = plt.gca()
+
+    uf_row.boundary.plot(ax=ax, linewidth=1)
+    ax.scatter(lons, lats, s=35)
+
+    minx, miny, maxx, maxy = uf_row.total_bounds
+    padx = (maxx - minx) * 0.15
+    pady = (maxy - miny) * 0.15
+    if padx == 0:
+        padx = 0.5
+    if pady == 0:
+        pady = 0.5
+
+    ax.set_xlim(minx - padx, maxx + padx)
+    ax.set_ylim(miny - pady, maxy + pady)
+
+    ax.set_title(f"CEMADEN {uf} | alertas novos (pontos)")
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
+    plt.tight_layout()
+    out = f"map_{uf}.png"
+    plt.savefig(out, dpi=160)
+    plt.close(fig)
+    return out
+
+
+def build_global_summary(alertas_vigentes: list[dict], conjunto_atualizado: str) -> str:
+    cnt_lvl = {"MUITO ALTO": 0, "ALTO": 0, "MODERADO": 0, "OUTRO": 0}
+    cnt_tip = {"Hidrológico": 0, "Movimento de Massa": 0, "Outro": 0}
+
+    for a in alertas_vigentes:
+        niv = nivel_key(str(a.get("nivel", "")))
+        tip = tipologia(str(a.get("evento", "")))
+        cnt_lvl[niv] = cnt_lvl.get(niv, 0) + 1
+        cnt_tip[tip] = cnt_tip.get(tip, 0) + 1
+
+    total = sum(cnt_lvl.values())
+    now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
+
+    return "\n".join(
+        [
+            "📊 *Resumo Geral CEMADEN*",
+            f"Conjunto: {esc_md(conjunto_atualizado) if conjunto_atualizado else '-'}",
+            f"Atualização: {esc_md(now_brt)} (BRT)",
+            "",
+            f"Total de alertas vigentes: {total}",
+            "",
+            "*Níveis Abertos*",
+            f"🟥 Muito Alto: {cnt_lvl['MUITO ALTO']}",
+            f"🟧 Alto: {cnt_lvl['ALTO']}",
+            f"🟨 Moderado: {cnt_lvl['MODERADO']}",
+            "",
+            "*Tipos de Alertas*",
+            f"⛰️ Mov. Massa: {cnt_tip.get('Movimento de Massa', 0)}",
+            f"💧 Risco Hidrológico: {cnt_tip.get('Hidrológico', 0)}",
+        ]
+    )
 
 
 def main() -> int:
@@ -317,12 +454,27 @@ def main() -> int:
     total_novos = len(novos)
     enviar = novos[:MAX_NEW_ALERTS_PER_RUN]
 
-    # 1) manda novos alertas (sempre)
+    # mensagens + mapas só para UFs com novos alertas
     if enviar:
-        msgs = build_messages_by_uf(enviar)
-        for i, msg in enumerate(msgs, start=1):
-            tg_send(msg)
-            if i < len(msgs):
+        uf_to_alerts = group_new_alerts_by_uf(enviar)
+        uf_to_msgs = build_messages_by_uf(enviar)
+
+        # carrega o geojson uma vez
+        uf_gdf, col_uf = _load_uf_gdf(UF_GEOJSON_PATH)
+
+        for uf in sorted(uf_to_msgs.keys()):
+            # 1) manda texto da UF
+            for i, msg in enumerate(uf_to_msgs[uf], start=1):
+                tg_send(msg)
+                if i < len(uf_to_msgs[uf]):
+                    time.sleep(SLEEP_BETWEEN_SENDS_SEC)
+
+            time.sleep(SLEEP_BETWEEN_SENDS_SEC)
+
+            # 2) manda mapa da UF, só com os pontos dos novos
+            map_path = gerar_mapa_uf(uf_to_alerts.get(uf, []), uf, uf_gdf, col_uf)
+            if map_path:
+                tg_send_photo(map_path, caption=f"🗺️ *Mapa {esc_md(uf)}* | pontos dos alertas novos")
                 time.sleep(SLEEP_BETWEEN_SENDS_SEC)
 
         if total_novos > len(enviar) and SEND_SUMMARY_WHEN_CAPPED:
@@ -336,7 +488,7 @@ def main() -> int:
     else:
         print("Sem novos alertas.")
 
-    # 2) resumo geral: só quando conjunto mudar, mas NÃO dispara na primeira execução
+    # resumo: só quando o conjunto mudar, e não dispara na primeira execução
     if not last_conjunto:
         print("Primeira execução: gravando conjunto e não enviando resumo.")
     else:
@@ -346,7 +498,7 @@ def main() -> int:
         else:
             print("Resumo suprimido: conjunto não mudou.")
 
-    # 3) marca todos os vigentes como vistos
+    # marca vigentes como vistos
     for a in alertas:
         cod = str(a.get("cod_alerta"))
         ult = str(a.get("ult_atualizacao"))
