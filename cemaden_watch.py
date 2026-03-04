@@ -15,23 +15,21 @@ STATE_PATH = os.environ.get("STATE_PATH", "state/cemaden_seen.json").strip()
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Controles anti-flood / anti-carga
 MAX_NEW_ALERTS_PER_RUN = int(os.environ.get("MAX_NEW_ALERTS_PER_RUN", "500"))
 SLEEP_BETWEEN_SENDS_SEC = float(os.environ.get("SLEEP_BETWEEN_SENDS_SEC", "1.2"))
 REQUEST_TIMEOUT_SEC = int(os.environ.get("REQUEST_TIMEOUT_SEC", "30"))
 
-# Telegram retry
 TG_MAX_RETRIES = int(os.environ.get("TG_MAX_RETRIES", "6"))
 TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
 
 SEND_SUMMARY_WHEN_CAPPED = os.environ.get("SEND_SUMMARY_WHEN_CAPPED", "1").strip() == "1"
 
 TZ = ZoneInfo("America/Sao_Paulo")
-TG_TEXT_LIMIT = 3800  # margem abaixo do limite real do Telegram
+TG_TEXT_LIMIT = 3800
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/4.2"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/4.3"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -39,9 +37,14 @@ def http_get_json(url: str) -> dict:
 
 def load_state(path: str) -> dict:
     if not os.path.exists(path):
-        return {"seen": {}, "last_run": None, "last_conjunto": None}
+        return {"seen": {}, "last_run": None, "last_conjunto": ""}
     with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        st = json.load(f)
+    if "seen" not in st:
+        st["seen"] = {}
+    if "last_conjunto" not in st or st["last_conjunto"] is None:
+        st["last_conjunto"] = ""
+    return st
 
 
 def save_state(path: str, data: dict) -> None:
@@ -152,7 +155,6 @@ def nivel_key(nivel: str) -> str:
 
 
 def nivel_chip(nivel_key_str: str) -> str:
-    # CEMADEN: Muito Alto = vermelho, Alto = laranja, Moderado = amarelo
     if nivel_key_str == "MUITO ALTO":
         return "🟥 *MUITO ALTO*"
     if nivel_key_str == "ALTO":
@@ -213,23 +215,24 @@ def build_global_summary(alertas_vigentes: list[dict], conjunto_atualizado: str)
     total = sum(cnt_lvl.values())
     now_brt = datetime.now(timezone.utc).astimezone(TZ).strftime("%d/%m/%Y %H:%M:%S")
 
-    linhas = [
-        "📊 *Resumo Geral CEMADEN*",
-        f"Conjunto: {esc_md(conjunto_atualizado) if conjunto_atualizado else '-'}",
-        f"Atualização: {esc_md(now_brt)} (BRT)",
-        "",
-        f"Total de alertas vigentes: {total}",
-        "",
-        "*Níveis Abertos*",
-        f"🟥 Muito Alto: {cnt_lvl['MUITO ALTO']}",
-        f"🟧 Alto: {cnt_lvl['ALTO']}",
-        f"🟨 Moderado: {cnt_lvl['MODERADO']}",
-        "",
-        "*Tipos de Alertas*",
-        f"⛰️ Mov. Massa: {cnt_tip.get('Movimento de Massa', 0)}",
-        f"💧 Risco Hidrológico: {cnt_tip.get('Hidrológico', 0)}",
-    ]
-    return "\n".join(linhas)
+    return "\n".join(
+        [
+            "📊 *Resumo Geral CEMADEN*",
+            f"Conjunto: {esc_md(conjunto_atualizado) if conjunto_atualizado else '-'}",
+            f"Atualização: {esc_md(now_brt)} (BRT)",
+            "",
+            f"Total de alertas vigentes: {total}",
+            "",
+            "*Níveis Abertos*",
+            f"🟥 Muito Alto: {cnt_lvl['MUITO ALTO']}",
+            f"🟧 Alto: {cnt_lvl['ALTO']}",
+            f"🟨 Moderado: {cnt_lvl['MODERADO']}",
+            "",
+            "*Tipos de Alertas*",
+            f"⛰️ Mov. Massa: {cnt_tip.get('Movimento de Massa', 0)}",
+            f"💧 Risco Hidrológico: {cnt_tip.get('Hidrológico', 0)}",
+        ]
+    )
 
 
 def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
@@ -289,18 +292,22 @@ def build_messages_by_uf(alertas_novos: list[dict]) -> list[str]:
     return messages
 
 
+def normalize_conjunto(s: str) -> str:
+    # deixa bem estável pra comparar
+    return " ".join((s or "").strip().split())
+
+
 def main() -> int:
     state = load_state(STATE_PATH)
     seen = state.get("seen", {})
-    last_conjunto = str(state.get("last_conjunto") or "").strip()
+    last_conjunto = normalize_conjunto(state.get("last_conjunto", ""))
 
     data = http_get_json(CEMADEN_URL)
-    conjunto_atualizado = str(data.get("atualizado", "")).strip()
+    conjunto_atualizado = normalize_conjunto(str(data.get("atualizado", "")))
 
     alertas = data.get("alertas", [])
     alertas = [a for a in alertas if a.get("status") == 1]
 
-    # novos = cod_alerta que não existia no state
     novos = []
     for a in alertas:
         cod = str(a.get("cod_alerta"))
@@ -326,16 +333,18 @@ def main() -> int:
                 f"Atualização: {esc_md(now_brt)} (BRT)\n"
                 "Os demais entram nas próximas execuções."
             )
-
     else:
         print("Sem novos alertas.")
 
-    # 2) resumo geral: só quando o 'conjunto' mudar (independente de horário)
-    conjunto_mudou = (conjunto_atualizado != "" and conjunto_atualizado != last_conjunto)
-    if conjunto_mudou:
-        tg_send(build_global_summary(alertas, conjunto_atualizado))
+    # 2) resumo geral: só quando conjunto mudar, mas NÃO dispara na primeira execução
+    if not last_conjunto:
+        print("Primeira execução: gravando conjunto e não enviando resumo.")
     else:
-        print("Resumo suprimido: conjunto não mudou.")
+        conjunto_mudou = (conjunto_atualizado != "" and conjunto_atualizado != last_conjunto)
+        if conjunto_mudou:
+            tg_send(build_global_summary(alertas, conjunto_atualizado))
+        else:
+            print("Resumo suprimido: conjunto não mudou.")
 
     # 3) marca todos os vigentes como vistos
     for a in alertas:
