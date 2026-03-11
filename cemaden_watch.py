@@ -7,6 +7,7 @@ import time
 import uuid
 import urllib.request
 import urllib.error
+import urllib.parse
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 from typing import Dict, List, Tuple, Any, Optional
@@ -21,20 +22,16 @@ CEMADEN_URL = os.environ.get(
 ).strip()
 
 STATE_PATH = os.environ.get("STATE_PATH", "state/cemaden_seen.json").strip()
-UF_GEOJSON_PATH = os.environ.get("UF_GEOJSON_PATH", "resources/estadosBrasil2.json").strip()
+UF_GEOJSON_PATH = os.environ.get("UF_GEOJSON_PATH", "resources/br_uf.geojson").strip()
 
-# Cache local das geometrias municipais baixadas do IBGE
 MUNICIPAL_CACHE_PATH = os.environ.get(
     "MUNICIPAL_CACHE_PATH",
     "state/municipios_cache.json",
 ).strip()
 
-# Endpoint de malha municipal do IBGE
-# Observação:
-# - Mantive isso parametrizado por env para facilitar ajuste, caso o IBGE altere a URL.
 IBGE_MALHA_URL_TMPL = os.environ.get(
     "IBGE_MALHA_URL_TMPL",
-    "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{cod}?formato=application/vnd.geo+json",
+    "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{cod}?formato=application%2Fvnd.geo%2Bjson",
 ).strip()
 
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
@@ -49,24 +46,18 @@ TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
 MAX_TG_MESSAGE_LEN = 4096
 SEND_MAPS = os.environ.get("SEND_MAPS", "1").strip() == "1"
 
-# Janela do histórico e janela analítica
 HISTORY_HOURS = int(os.environ.get("HISTORY_HOURS", "48"))
 MAP_WINDOW_HOURS = int(os.environ.get("MAP_WINDOW_HOURS", "24"))
 
-# Se True, só envia Telegram quando o conjunto de alertas 24h mudar
 SEND_ONLY_ON_CHANGE = os.environ.get("SEND_ONLY_ON_CHANGE", "1").strip() == "1"
 
-# Timezone de exibição
 TZ = ZoneInfo("America/Sao_Paulo")
-
-# Assumimos que datahoracriacao do feed está em UTC
 ALERT_SOURCE_TZ = timezone.utc
 
-# Cores CEMADEN
 LEVEL_COLORS = {
-    "Moderado": "#FFD54F",   # amarelo
-    "Alto": "#FB8C00",       # laranja
-    "Muito Alto": "#D32F2F", # vermelho
+    "Moderado": "#FFD54F",
+    "Alto": "#FB8C00",
+    "Muito Alto": "#D32F2F",
 }
 
 LEVEL_ORDER = {
@@ -87,7 +78,7 @@ def ensure_parent_dir(path: str) -> None:
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.2"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -201,9 +192,10 @@ def tg_send_text(text: str) -> None:
         print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Não vou enviar nada.")
         return
 
-    for i, part in enumerate(split_message(text, MAX_TG_MESSAGE_LEN), start=1):
+    parts = split_message(text, MAX_TG_MESSAGE_LEN)
+    for i, part in enumerate(parts, start=1):
         _tg_send_text_with_retry(part)
-        if i > 0:
+        if i < len(parts):
             time.sleep(SLEEP_BETWEEN_SENDS_SEC)
 
 
@@ -310,11 +302,18 @@ def nivel_rank(nivel: str) -> int:
     return LEVEL_ORDER.get(norm(nivel), 0)
 
 
+def evento_tipo_bruto(evento: str) -> str:
+    txt = norm(evento)
+    if " - " in txt:
+        return txt.split(" - ", 1)[0].strip()
+    return txt
+
+
 def tipo_evento(evento: str) -> Optional[str]:
-    e = norm(evento).lower()
-    if "hidrol" in e:
+    base = evento_tipo_bruto(evento).lower()
+    if "hidrol" in base:
         return "hidrologico"
-    if "mov" in e or "massa" in e:
+    if "mov" in base or "massa" in base:
         return "geologico"
     return None
 
@@ -351,9 +350,6 @@ def load_uf_geojson(path: str) -> List[dict]:
 
 
 def geom_to_rings(geometry: dict) -> List[List[Tuple[float, float]]]:
-    """
-    Retorna lista de anéis externos. Cada anel é lista de (lon, lat).
-    """
     if not geometry:
         return []
 
@@ -395,26 +391,67 @@ def brazil_bbox_from_ufs(uf_features: List[dict]) -> Tuple[float, float, float, 
 
 def fetch_municipality_geometry(codibge: str) -> Optional[dict]:
     url = IBGE_MALHA_URL_TMPL.format(cod=codibge)
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
-            raw = resp.read().decode("utf-8", errors="replace")
-        data = json.loads(raw)
-    except Exception as e:
-        print(f"Falha ao baixar malha do município {codibge}: {e}")
-        return None
 
-    # O endpoint pode responder como FeatureCollection, Feature ou geometry direta
-    if isinstance(data, dict):
-        if data.get("type") == "FeatureCollection":
-            feats = data.get("features", []) or []
-            if feats:
-                return feats[0].get("geometry")
-        if data.get("type") == "Feature":
-            return data.get("geometry")
-        if data.get("type") in ("Polygon", "MultiPolygon"):
-            return data
+    if "formato=application/vnd.geo+json" in url:
+        url = url.replace(
+            "formato=application/vnd.geo+json",
+            "formato=" + urllib.parse.quote("application/vnd.geo+json", safe=""),
+        )
 
+    last_err = None
+
+    for attempt in range(1, 5):
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "cemaden-watch/6.2",
+                "Accept": "application/json, application/geo+json, application/vnd.geo+json, */*",
+            },
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
+                status = getattr(resp, "status", 200)
+                content_type = resp.headers.get("Content-Type", "")
+                raw_bytes = resp.read()
+
+            raw_text = raw_bytes.decode("utf-8", errors="replace").strip()
+
+            if status < 200 or status >= 300:
+                raise RuntimeError(f"HTTP {status}")
+
+            if not raw_text:
+                raise RuntimeError("resposta vazia")
+
+            try:
+                data = json.loads(raw_text)
+            except json.JSONDecodeError:
+                preview = raw_text[:220].replace("\n", " ").replace("\r", " ")
+                raise RuntimeError(
+                    f"resposta não-JSON | content-type={content_type!r} | preview={preview!r}"
+                )
+
+            if isinstance(data, dict):
+                if data.get("type") == "FeatureCollection":
+                    feats = data.get("features", []) or []
+                    if feats:
+                        return feats[0].get("geometry")
+
+                if data.get("type") == "Feature":
+                    return data.get("geometry")
+
+                if data.get("type") in ("Polygon", "MultiPolygon"):
+                    return data
+
+            raise RuntimeError(f"JSON inesperado para município {codibge}")
+
+        except Exception as e:
+            last_err = e
+            wait_s = min(2 ** (attempt - 1), 12)
+            print(f"Falha ao baixar malha do município {codibge} (tentativa {attempt}/4): {e}")
+            time.sleep(wait_s)
+
+    print(f"Falha final ao baixar malha do município {codibge}: {last_err}")
     return None
 
 
@@ -444,10 +481,6 @@ def get_municipality_geometry(codibge: str, cache: dict) -> Optional[dict]:
 
 
 def merge_current_feed_into_history(history: Dict[str, dict], current_alerts: List[dict], now_utc: datetime) -> Dict[str, dict]:
-    """
-    Mantém histórico por cod_alerta.
-    Atualiza last_seen_at sempre que o alerta aparecer no feed.
-    """
     for a in current_alerts:
         cod = norm(a.get("cod_alerta"))
         if not cod:
@@ -477,7 +510,6 @@ def merge_current_feed_into_history(history: Dict[str, dict], current_alerts: Li
             "last_seen_at": now_utc.isoformat(),
         }
 
-    # poda por created_at_iso > HISTORY_HOURS
     keep: Dict[str, dict] = {}
     min_dt = now_utc - timedelta(hours=HISTORY_HOURS)
 
@@ -485,7 +517,6 @@ def merge_current_feed_into_history(history: Dict[str, dict], current_alerts: Li
         created_dt = iso_to_dt(item.get("created_at_iso", ""))
         last_seen_dt = iso_to_dt(item.get("last_seen_at", ""))
 
-        # prioridade para data de criação; se faltar, usa last_seen_at
         ref_dt = created_dt or last_seen_dt
         if ref_dt and ref_dt >= min_dt:
             keep[cod] = item
@@ -509,11 +540,6 @@ def filter_alerts_last_hours(history: Dict[str, dict], now_utc: datetime, hours:
 
 
 def build_category_municipality_map(alerts_24h: List[dict], category: str) -> Dict[str, dict]:
-    """
-    category: "hidrologico" ou "geologico"
-    Se houver mais de um alerta no mesmo município na janela,
-    fica o maior nível observado.
-    """
     result: Dict[str, dict] = {}
 
     for a in alerts_24h:
@@ -535,6 +561,7 @@ def build_category_municipality_map(alerts_24h: List[dict], category: str) -> Di
                 "uf": norm(a.get("uf")),
                 "nivel": nivel,
                 "evento": norm(a.get("evento")),
+                "evento_tipo": evento_tipo_bruto(a.get("evento")),
                 "cod_alerta": norm(a.get("cod_alerta")),
                 "created_at_iso": a.get("created_at_iso"),
             }
@@ -552,9 +579,6 @@ def count_levels(muni_map: Dict[str, dict]) -> Dict[str, int]:
 
 
 def build_24h_signature(alerts_24h: List[dict]) -> str:
-    """
-    Assinatura estável baseada nos alertas presentes nas últimas 24h.
-    """
     parts = []
     for a in alerts_24h:
         cod = norm(a.get("cod_alerta"))
@@ -621,12 +645,8 @@ def render_category_map(
 
     fig = plt.figure(figsize=(11.8, 11.2))
     ax = fig.add_subplot(111)
-
-    # Fundo branco
     ax.set_facecolor("white")
 
-    # Desenha municípios coloridos primeiro
-    drawn_count = 0
     missing_geoms: List[str] = []
 
     for codibge, info in muni_map.items():
@@ -653,9 +673,6 @@ def render_category_map(
             )
             ax.add_patch(patch)
 
-        drawn_count += 1
-
-    # Depois desenha o contorno das UFs
     for feat in uf_features:
         for ring in geom_to_rings(feat.get("geometry")):
             xs = [p[0] for p in ring]
@@ -684,7 +701,6 @@ def render_category_map(
         pad=16,
     )
 
-    # Legenda
     legend_handles = [
         Patch(facecolor=LEVEL_COLORS["Moderado"], edgecolor="#616161", label="Moderado"),
         Patch(facecolor=LEVEL_COLORS["Alto"], edgecolor="#616161", label="Alto"),
@@ -701,7 +717,6 @@ def render_category_map(
     )
     leg.get_frame().set_edgecolor("#9E9E9E")
 
-    # Caixa de resumo
     summary_lines = [
         f"Municípios alertados: {total_mun}",
         f"Muito Alto: {counts['Muito Alto']}",
@@ -738,28 +753,22 @@ def main() -> int:
     municipal_cache = load_municipal_cache(MUNICIPAL_CACHE_PATH)
     now_utc = datetime.now(timezone.utc)
 
-    # 1) Lê feed
     data = http_get_json(CEMADEN_URL)
     conjunto_atualizado = norm(data.get("atualizado"))
     current_alerts = data.get("alertas", []) or []
 
-    # Mantemos os alertas vistos no feed, independentemente do status,
-    # porque alertas podem desaparecer depois.
     state["alerts_history"] = merge_current_feed_into_history(
         state.get("alerts_history", {}),
         current_alerts,
         now_utc,
     )
 
-    # 2) Recorte das últimas 24h baseado no histórico local
     alerts_24h = filter_alerts_last_hours(state["alerts_history"], now_utc, MAP_WINDOW_HOURS)
     alerts_24h.sort(key=lambda a: (a.get("created_at_iso") or "", a.get("cod_alerta") or ""))
 
-    # 3) Mapa por categoria usando severidade máxima por município
     hid_map = build_category_municipality_map(alerts_24h, "hidrologico")
     geo_map = build_category_municipality_map(alerts_24h, "geologico")
 
-    # 4) Carrega base dos estados para fundo
     uf_features = load_uf_geojson(UF_GEOJSON_PATH)
 
     out_hid = "/tmp/mapa_cemaden_hidrologico_24h.png"
@@ -785,7 +794,6 @@ def main() -> int:
 
     save_municipal_cache(MUNICIPAL_CACHE_PATH, municipal_cache)
 
-    # 5) Decide se envia Telegram
     current_vigentes = [a for a in current_alerts if a.get("status") == 1]
     signature_24h = build_24h_signature(alerts_24h)
 
@@ -813,11 +821,9 @@ def main() -> int:
                     f"Gerado em: {fmt_dt_local(now_utc)}"
                 ),
             )
-
     else:
         print("Janela 24h sem alteração. Não vou reenviar Telegram.")
 
-    # 6) Atualiza state
     state["last_conjunto"] = conjunto_atualizado
     state["last_run"] = now_utc.isoformat()
     state["last_24h_signature"] = signature_24h
