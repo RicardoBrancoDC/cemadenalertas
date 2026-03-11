@@ -78,7 +78,7 @@ def ensure_parent_dir(path: str) -> None:
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.2"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.3"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -87,14 +87,33 @@ def http_get_json(url: str) -> dict:
 def load_json_file(path: str, default: Any) -> Any:
     if not os.path.exists(path):
         return default
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+
+        if not content:
+            print(f"Arquivo vazio, recriando: {path}")
+            return default
+
+        return json.loads(content)
+
+    except Exception as e:
+        print(f"Falha ao ler JSON {path}: {e}")
+        print("Vou seguir com o valor padrão.")
+        return default
 
 
 def save_json_file(path: str, data: Any) -> None:
     ensure_parent_dir(path)
-    with open(path, "w", encoding="utf-8") as f:
+
+    tmp_path = path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+
+    os.replace(tmp_path, path)
 
 
 def load_state(path: str) -> dict:
@@ -404,7 +423,7 @@ def fetch_municipality_geometry(codibge: str) -> Optional[dict]:
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "cemaden-watch/6.2",
+                "User-Agent": "cemaden-watch/6.3",
                 "Accept": "application/json, application/geo+json, application/vnd.geo+json, */*",
             },
         )
