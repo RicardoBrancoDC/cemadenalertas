@@ -1,24 +1,7 @@
 {
-  "last_conjunto": "11-03-2026 18:11:01 UTC",
-  "last_run": "2026-03-11T18:11:21.381837+00:00",
+  "last_conjunto": "11-03-2026 21:02:02 UTC",
+  "last_run": "2026-03-11T21:02:30.391524+00:00",
   "alerts_history": {
-    "1480": {
-      "cod_alerta": "1480",
-      "datahoracriacao": "2026-03-09 19:57:01.272",
-      "ult_atualizacao": "2026-03-09 19:57:01.272",
-      "codibge": "3143906",
-      "evento": "Movimentos de Massa - Moderado",
-      "nivel": "Moderado",
-      "status": 1,
-      "uf": "MG",
-      "municipio": "MURIAÉ",
-      "latitude": -21.091371949788,
-      "longitude": -42.421457967788,
-      "created_at_iso": "2026-03-09T19:57:01.272000+00:00",
-      "updated_at_iso": "2026-03-09T19:57:01.272000+00:00",
-      "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
-    },
     "1482": {
       "cod_alerta": "1482",
       "datahoracriacao": "2026-03-10 08:41:43.259",
@@ -34,7 +17,7 @@
       "created_at_iso": "2026-03-10T08:41:43.259000+00:00",
       "updated_at_iso": "2026-03-10T08:41:43.259000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     },
     "1487": {
       "cod_alerta": "1487",
@@ -51,7 +34,7 @@
       "created_at_iso": "2026-03-10T13:45:12.115000+00:00",
       "updated_at_iso": "2026-03-10T13:45:12.115000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     },
     "1488": {
       "cod_alerta": "1488",
@@ -68,7 +51,7 @@
       "created_at_iso": "2026-03-10T13:47:11.245000+00:00",
       "updated_at_iso": "2026-03-10T13:47:11.245000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     },
     "1489": {
       "cod_alerta": "1489",
@@ -85,7 +68,7 @@
       "created_at_iso": "2026-03-10T15:06:59.393000+00:00",
       "updated_at_iso": "2026-03-10T15:06:59.393000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     },
     "1490": {
       "cod_alerta": "1490",
@@ -102,7 +85,7 @@
       "created_at_iso": "2026-03-10T15:33:10.422000+00:00",
       "updated_at_iso": "2026-03-10T15:33:10.422000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     },
     "1491": {
       "cod_alerta": "1491",
@@ -119,7 +102,7 @@
       "created_at_iso": "2026-03-10T16:35:31.574000+00:00",
       "updated_at_iso": "2026-03-10T16:35:31.574000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     },
     "1493": {
       "cod_alerta": "1493",
@@ -136,7 +119,7 @@
       "created_at_iso": "2026-03-10T19:33:15.611000+00:00",
       "updated_at_iso": "2026-03-10T19:33:15.611000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     },
     "1496": {
       "cod_alerta": "1496",
@@ -153,8 +136,127 @@
       "created_at_iso": "2026-03-11T03:35:09.758000+00:00",
       "updated_at_iso": "2026-03-11T03:35:09.758000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T18:11:21.381837+00:00"
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
+    },
+    "1502": {
+      "cod_alerta": "1502",
+      "datahoracriacao": "2026-03-11 16:17:22.135",
+      "ult_atualizacao": "2026-03-11 16:17:22.135",
+      "codibge": "3140001",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "MARIANA",
+      "latitude": -20.32910250416,
+      "longitude": -43.331334041862,
+      "created_at_iso": "2026-03-11T16:17:22.135000+00:00",
+      "updated_at_iso": "2026-03-11T16:17:22.135000+00:00",
+      "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
+    },
+    "1503": {
+      "cod_alerta": "1503",
+      "datahoracriacao": "2026-03-11 16:36:08.522",
+      "ult_atualizacao": "2026-03-11 16:36:08.522",
+      "codibge": "3118304",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "CONSELHEIRO LAFAIETE",
+      "latitude": -20.666008441146,
+      "longitude": -43.788656797159,
+      "created_at_iso": "2026-03-11T16:36:08.522000+00:00",
+      "updated_at_iso": "2026-03-11T16:36:08.522000+00:00",
+      "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
+    },
+    "1504": {
+      "cod_alerta": "1504",
+      "datahoracriacao": "2026-03-11 16:40:22.876",
+      "ult_atualizacao": "2026-03-11 16:40:22.876",
+      "codibge": "3140001",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "MARIANA",
+      "latitude": -20.32910250416,
+      "longitude": -43.331334041862,
+      "created_at_iso": "2026-03-11T16:40:22.876000+00:00",
+      "updated_at_iso": "2026-03-11T16:40:22.876000+00:00",
+      "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
+    },
+    "1505": {
+      "cod_alerta": "1505",
+      "datahoracriacao": "2026-03-11 16:41:23.555",
+      "ult_atualizacao": "2026-03-11 16:41:23.555",
+      "codibge": "3118304",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "CONSELHEIRO LAFAIETE",
+      "latitude": -20.666008441146,
+      "longitude": -43.788656797159,
+      "created_at_iso": "2026-03-11T16:41:23.555000+00:00",
+      "updated_at_iso": "2026-03-11T16:41:23.555000+00:00",
+      "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
+    },
+    "1506": {
+      "cod_alerta": "1506",
+      "datahoracriacao": "2026-03-11 16:43:00.81",
+      "ult_atualizacao": "2026-03-11 16:43:00.81",
+      "codibge": "5300108",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "DF",
+      "municipio": "BRASÍLIA",
+      "latitude": -15.780692384702,
+      "longitude": -47.797360713196,
+      "created_at_iso": "2026-03-11T16:43:00.810000+00:00",
+      "updated_at_iso": "2026-03-11T16:43:00.810000+00:00",
+      "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
+    },
+    "1501": {
+      "cod_alerta": "1501",
+      "datahoracriacao": "2026-03-11 15:56:40.887",
+      "ult_atualizacao": "2026-03-11 17:17:10.584",
+      "codibge": "3106200",
+      "evento": "Risco Hidrológico - Alto",
+      "nivel": "Alto",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "BELO HORIZONTE",
+      "latitude": -19.902739296534,
+      "longitude": -43.959883509799,
+      "created_at_iso": "2026-03-11T15:56:40.887000+00:00",
+      "updated_at_iso": "2026-03-11T17:17:10.584000+00:00",
+      "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
+    },
+    "1507": {
+      "cod_alerta": "1507",
+      "datahoracriacao": "2026-03-11 17:31:53.085",
+      "ult_atualizacao": "2026-03-11 17:31:53.085",
+      "codibge": "3139508",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "MANHUMIRIM",
+      "latitude": -20.347320794114,
+      "longitude": -41.939402204186,
+      "created_at_iso": "2026-03-11T17:31:53.085000+00:00",
+      "updated_at_iso": "2026-03-11T17:31:53.085000+00:00",
+      "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
+      "last_seen_at": "2026-03-11T21:02:30.391524+00:00"
     }
   },
-  "last_24h_signature": "1493|2026-03-10T19:33:15.611000+00:00|Moderado|Movimentos de Massa - Moderado||1496|2026-03-11T03:35:09.758000+00:00|Alto|Risco Hidrológico - Alto"
+  "last_24h_signature": "1496|2026-03-11T03:35:09.758000+00:00|Alto|Risco Hidrológico - Alto||1501|2026-03-11T15:56:40.887000+00:00|Alto|Risco Hidrológico - Alto||1502|2026-03-11T16:17:22.135000+00:00|Moderado|Movimentos de Massa - Moderado||1503|2026-03-11T16:36:08.522000+00:00|Moderado|Risco Hidrológico - Moderado||1504|2026-03-11T16:40:22.876000+00:00|Moderado|Risco Hidrológico - Moderado||1505|2026-03-11T16:41:23.555000+00:00|Moderado|Movimentos de Massa - Moderado||1506|2026-03-11T16:43:00.810000+00:00|Moderado|Risco Hidrológico - Moderado||1507|2026-03-11T17:31:53.085000+00:00|Moderado|Movimentos de Massa - Moderado"
 }
