@@ -46,7 +46,7 @@ jobs:
           HISTORY_HOURS: "48"
           MAP_WINDOW_HOURS: "24"
           SEND_ONLY_ON_CHANGE: "1"
-          IBGE_MALHA_URL_TMPL: "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{cod}?formato=application/vnd.geo+json"
+          IBGE_MALHA_URL_TMPL: "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{cod}?formato=application%2Fvnd.geo%2Bjson"
         run: |
           python cemaden_watch.py
 
