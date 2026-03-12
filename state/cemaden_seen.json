@@ -1,58 +1,7 @@
 {
-  "last_conjunto": "12-03-2026 14:37:01 UTC",
-  "last_run": "2026-03-12T14:37:36.770751+00:00",
+  "last_conjunto": "12-03-2026 18:10:01 UTC",
+  "last_run": "2026-03-12T18:10:07.804799+00:00",
   "alerts_history": {
-    "1489": {
-      "cod_alerta": "1489",
-      "datahoracriacao": "2026-03-10 15:06:59.393",
-      "ult_atualizacao": "2026-03-10 15:06:59.393",
-      "codibge": "3129301",
-      "evento": "Movimentos de Massa - Moderado",
-      "nivel": "Moderado",
-      "status": 1,
-      "uf": "MG",
-      "municipio": "IAPU",
-      "latitude": -19.347115188889,
-      "longitude": -42.242751178561,
-      "created_at_iso": "2026-03-10T15:06:59.393000+00:00",
-      "updated_at_iso": "2026-03-10T15:06:59.393000+00:00",
-      "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
-    },
-    "1490": {
-      "cod_alerta": "1490",
-      "datahoracriacao": "2026-03-10 15:33:10.422",
-      "ult_atualizacao": "2026-03-10 15:33:10.422",
-      "codibge": "3136207",
-      "evento": "Movimentos de Massa - Moderado",
-      "nivel": "Moderado",
-      "status": 1,
-      "uf": "MG",
-      "municipio": "JOÃO MONLEVADE",
-      "latitude": -19.837941198792,
-      "longitude": -43.161486132665,
-      "created_at_iso": "2026-03-10T15:33:10.422000+00:00",
-      "updated_at_iso": "2026-03-10T15:33:10.422000+00:00",
-      "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
-    },
-    "1491": {
-      "cod_alerta": "1491",
-      "datahoracriacao": "2026-03-10 16:35:31.574",
-      "ult_atualizacao": "2026-03-10 16:35:31.574",
-      "codibge": "3116001",
-      "evento": "Movimentos de Massa - Moderado",
-      "nivel": "Moderado",
-      "status": 1,
-      "uf": "MG",
-      "municipio": "CHALÉ",
-      "latitude": -20.030977814818,
-      "longitude": -41.659783517698,
-      "created_at_iso": "2026-03-10T16:35:31.574000+00:00",
-      "updated_at_iso": "2026-03-10T16:35:31.574000+00:00",
-      "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
-    },
     "1493": {
       "cod_alerta": "1493",
       "datahoracriacao": "2026-03-10 19:33:15.611",
@@ -68,7 +17,7 @@
       "created_at_iso": "2026-03-10T19:33:15.611000+00:00",
       "updated_at_iso": "2026-03-10T19:33:15.611000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1496": {
       "cod_alerta": "1496",
@@ -85,7 +34,7 @@
       "created_at_iso": "2026-03-11T03:35:09.758000+00:00",
       "updated_at_iso": "2026-03-11T03:35:09.758000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1502": {
       "cod_alerta": "1502",
@@ -102,7 +51,7 @@
       "created_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "updated_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1503": {
       "cod_alerta": "1503",
@@ -153,7 +102,7 @@
       "created_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "updated_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1506": {
       "cod_alerta": "1506",
@@ -170,7 +119,7 @@
       "created_at_iso": "2026-03-11T16:43:00.810000+00:00",
       "updated_at_iso": "2026-03-11T16:43:00.810000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1501": {
       "cod_alerta": "1501",
@@ -204,7 +153,7 @@
       "created_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "updated_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1508": {
       "cod_alerta": "1508",
@@ -238,7 +187,7 @@
       "created_at_iso": "2026-03-11T22:02:04.183000+00:00",
       "updated_at_iso": "2026-03-11T22:02:04.183000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1511": {
       "cod_alerta": "1511",
@@ -306,7 +255,7 @@
       "created_at_iso": "2026-03-12T00:47:35.605000+00:00",
       "updated_at_iso": "2026-03-12T00:47:35.605000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1515": {
       "cod_alerta": "1515",
@@ -323,7 +272,7 @@
       "created_at_iso": "2026-03-12T01:36:17.974000+00:00",
       "updated_at_iso": "2026-03-12T01:36:17.974000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1516": {
       "cod_alerta": "1516",
@@ -340,7 +289,7 @@
       "created_at_iso": "2026-03-12T03:27:33.024000+00:00",
       "updated_at_iso": "2026-03-12T03:27:33.024000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1517": {
       "cod_alerta": "1517",
@@ -357,7 +306,7 @@
       "created_at_iso": "2026-03-12T03:45:50.763000+00:00",
       "updated_at_iso": "2026-03-12T03:45:50.763000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1518": {
       "cod_alerta": "1518",
@@ -374,7 +323,7 @@
       "created_at_iso": "2026-03-12T03:56:30.635000+00:00",
       "updated_at_iso": "2026-03-12T03:56:30.635000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1519": {
       "cod_alerta": "1519",
@@ -391,7 +340,7 @@
       "created_at_iso": "2026-03-12T03:59:04.225000+00:00",
       "updated_at_iso": "2026-03-12T03:59:04.225000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1521": {
       "cod_alerta": "1521",
@@ -408,7 +357,7 @@
       "created_at_iso": "2026-03-12T05:45:25.684000+00:00",
       "updated_at_iso": "2026-03-12T05:45:25.684000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     },
     "1520": {
       "cod_alerta": "1520",
@@ -425,8 +374,59 @@
       "created_at_iso": "2026-03-12T04:57:52.781000+00:00",
       "updated_at_iso": "2026-03-12T05:53:53.072000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T14:37:36.770751+00:00"
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
+    },
+    "1522": {
+      "cod_alerta": "1522",
+      "datahoracriacao": "2026-03-12 11:54:35.698",
+      "ult_atualizacao": "2026-03-12 11:54:35.698",
+      "codibge": "1302603",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "AM",
+      "municipio": "MANAUS",
+      "latitude": -2.6259193827197,
+      "longitude": -60.259628014208,
+      "created_at_iso": "2026-03-12T11:54:35.698000+00:00",
+      "updated_at_iso": "2026-03-12T11:54:35.698000+00:00",
+      "first_seen_at": "2026-03-12T18:10:07.804799+00:00",
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
+    },
+    "1523": {
+      "cod_alerta": "1523",
+      "datahoracriacao": "2026-03-12 14:18:56.662",
+      "ult_atualizacao": "2026-03-12 14:18:56.662",
+      "codibge": "1501402",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "PA",
+      "municipio": "BELÉM",
+      "latitude": -1.2407107063979,
+      "longitude": -48.459913432708,
+      "created_at_iso": "2026-03-12T14:18:56.662000+00:00",
+      "updated_at_iso": "2026-03-12T14:18:56.662000+00:00",
+      "first_seen_at": "2026-03-12T18:10:07.804799+00:00",
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
+    },
+    "1524": {
+      "cod_alerta": "1524",
+      "datahoracriacao": "2026-03-12 14:58:06.151",
+      "ult_atualizacao": "2026-03-12 14:58:06.151",
+      "codibge": "3136702",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "JUIZ DE FORA",
+      "latitude": -21.745493419123,
+      "longitude": -43.464736687699,
+      "created_at_iso": "2026-03-12T14:58:06.151000+00:00",
+      "updated_at_iso": "2026-03-12T14:58:06.151000+00:00",
+      "first_seen_at": "2026-03-12T18:10:07.804799+00:00",
+      "last_seen_at": "2026-03-12T18:10:07.804799+00:00"
     }
   },
-  "last_24h_signature": "1501|2026-03-11T15:56:40.887000+00:00|Alto|Risco Hidrológico - Alto||1502|2026-03-11T16:17:22.135000+00:00|Moderado|Movimentos de Massa - Moderado||1503|2026-03-11T16:36:08.522000+00:00|Moderado|Risco Hidrológico - Moderado||1504|2026-03-11T16:40:22.876000+00:00|Moderado|Risco Hidrológico - Moderado||1505|2026-03-11T16:41:23.555000+00:00|Moderado|Movimentos de Massa - Moderado||1506|2026-03-11T16:43:00.810000+00:00|Moderado|Risco Hidrológico - Moderado||1507|2026-03-11T17:31:53.085000+00:00|Moderado|Movimentos de Massa - Moderado||1508|2026-03-11T19:24:38.296000+00:00|Moderado|Risco Hidrológico - Moderado||1510|2026-03-11T22:02:04.183000+00:00|Moderado|Risco Hidrológico - Moderado||1511|2026-03-11T23:04:49.790000+00:00|Moderado|Risco Hidrológico - Moderado||1512|2026-03-11T23:15:07.088000+00:00|Moderado|Risco Hidrológico - Moderado||1513|2026-03-12T00:44:28.432000+00:00|Moderado|Risco Hidrológico - Moderado||1514|2026-03-12T00:47:35.605000+00:00|Moderado|Movimentos de Massa - Moderado||1515|2026-03-12T01:36:17.974000+00:00|Moderado|Movimentos de Massa - Moderado||1516|2026-03-12T03:27:33.024000+00:00|Moderado|Movimentos de Massa - Moderado||1517|2026-03-12T03:45:50.763000+00:00|Moderado|Risco Hidrológico - Moderado||1518|2026-03-12T03:56:30.635000+00:00|Moderado|Risco Hidrológico - Moderado||1519|2026-03-12T03:59:04.225000+00:00|Moderado|Risco Hidrológico - Moderado||1520|2026-03-12T04:57:52.781000+00:00|Alto|Risco Hidrológico - Alto||1521|2026-03-12T05:45:25.684000+00:00|Moderado|Movimentos de Massa - Moderado"
+  "last_24h_signature": "1508|2026-03-11T19:24:38.296000+00:00|Moderado|Risco Hidrológico - Moderado||1510|2026-03-11T22:02:04.183000+00:00|Moderado|Risco Hidrológico - Moderado||1511|2026-03-11T23:04:49.790000+00:00|Moderado|Risco Hidrológico - Moderado||1512|2026-03-11T23:15:07.088000+00:00|Moderado|Risco Hidrológico - Moderado||1513|2026-03-12T00:44:28.432000+00:00|Moderado|Risco Hidrológico - Moderado||1514|2026-03-12T00:47:35.605000+00:00|Moderado|Movimentos de Massa - Moderado||1515|2026-03-12T01:36:17.974000+00:00|Moderado|Movimentos de Massa - Moderado||1516|2026-03-12T03:27:33.024000+00:00|Moderado|Movimentos de Massa - Moderado||1517|2026-03-12T03:45:50.763000+00:00|Moderado|Risco Hidrológico - Moderado||1518|2026-03-12T03:56:30.635000+00:00|Moderado|Risco Hidrológico - Moderado||1519|2026-03-12T03:59:04.225000+00:00|Moderado|Risco Hidrológico - Moderado||1520|2026-03-12T04:57:52.781000+00:00|Alto|Risco Hidrológico - Alto||1521|2026-03-12T05:45:25.684000+00:00|Moderado|Movimentos de Massa - Moderado||1522|2026-03-12T11:54:35.698000+00:00|Moderado|Risco Hidrológico - Moderado||1523|2026-03-12T14:18:56.662000+00:00|Moderado|Risco Hidrológico - Moderado||1524|2026-03-12T14:58:06.151000+00:00|Moderado|Risco Hidrológico - Moderado"
 }
