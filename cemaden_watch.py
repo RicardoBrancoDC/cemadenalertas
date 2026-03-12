@@ -7,7 +7,6 @@ import time
 import uuid
 import urllib.request
 import urllib.error
-import urllib.parse
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 from typing import Dict, List, Tuple, Any, Optional
@@ -23,16 +22,6 @@ CEMADEN_URL = os.environ.get(
 
 STATE_PATH = os.environ.get("STATE_PATH", "state/cemaden_seen.json").strip()
 UF_GEOJSON_PATH = os.environ.get("UF_GEOJSON_PATH", "resources/br_uf.geojson").strip()
-
-MUNICIPAL_CACHE_PATH = os.environ.get(
-    "MUNICIPAL_CACHE_PATH",
-    "state/municipios_cache.json",
-).strip()
-
-IBGE_MALHA_URL_TMPL = os.environ.get(
-    "IBGE_MALHA_URL_TMPL",
-    "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{cod}?formato=application%2Fvnd.geo%2Bjson",
-).strip()
 
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
@@ -66,6 +55,12 @@ LEVEL_ORDER = {
     "Muito Alto": 3,
 }
 
+LEVEL_SIZES = {
+    "Moderado": 40,
+    "Alto": 70,
+    "Muito Alto": 110,
+}
+
 # =========================
 # HTTP / STATE
 # =========================
@@ -78,7 +73,7 @@ def ensure_parent_dir(path: str) -> None:
 
 
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.3"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.4"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
@@ -134,16 +129,6 @@ def load_state(path: str) -> dict:
 
 
 def save_state(path: str, data: dict) -> None:
-    save_json_file(path, data)
-
-
-def load_municipal_cache(path: str) -> dict:
-    cache = load_json_file(path, {"items": {}})
-    cache.setdefault("items", {})
-    return cache
-
-
-def save_municipal_cache(path: str, data: dict) -> None:
     save_json_file(path, data)
 
 
@@ -341,6 +326,10 @@ def color_for_level(nivel: str) -> str:
     return LEVEL_COLORS.get(norm(nivel), "#9E9E9E")
 
 
+def size_for_level(nivel: str) -> int:
+    return LEVEL_SIZES.get(norm(nivel), 35)
+
+
 def emoji_nivel(nivel: str) -> str:
     n = norm(nivel)
     if n == "Muito Alto":
@@ -401,97 +390,6 @@ def brazil_bbox_from_ufs(uf_features: List[dict]) -> Tuple[float, float, float, 
         return (-74.0, -34.0, -34.0, 6.0)
 
     return (min(allx), max(allx), min(ally), max(ally))
-
-
-# =========================
-# MALHA MUNICIPAL IBGE
-# =========================
-
-
-def fetch_municipality_geometry(codibge: str) -> Optional[dict]:
-    url = IBGE_MALHA_URL_TMPL.format(cod=codibge)
-
-    if "formato=application/vnd.geo+json" in url:
-        url = url.replace(
-            "formato=application/vnd.geo+json",
-            "formato=" + urllib.parse.quote("application/vnd.geo+json", safe=""),
-        )
-
-    last_err = None
-
-    for attempt in range(1, 5):
-        req = urllib.request.Request(
-            url,
-            headers={
-                "User-Agent": "cemaden-watch/6.3",
-                "Accept": "application/json, application/geo+json, application/vnd.geo+json, */*",
-            },
-        )
-
-        try:
-            with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
-                status = getattr(resp, "status", 200)
-                content_type = resp.headers.get("Content-Type", "")
-                raw_bytes = resp.read()
-
-            raw_text = raw_bytes.decode("utf-8", errors="replace").strip()
-
-            if status < 200 or status >= 300:
-                raise RuntimeError(f"HTTP {status}")
-
-            if not raw_text:
-                raise RuntimeError("resposta vazia")
-
-            try:
-                data = json.loads(raw_text)
-            except json.JSONDecodeError:
-                preview = raw_text[:220].replace("\n", " ").replace("\r", " ")
-                raise RuntimeError(
-                    f"resposta não-JSON | content-type={content_type!r} | preview={preview!r}"
-                )
-
-            if isinstance(data, dict):
-                if data.get("type") == "FeatureCollection":
-                    feats = data.get("features", []) or []
-                    if feats:
-                        return feats[0].get("geometry")
-
-                if data.get("type") == "Feature":
-                    return data.get("geometry")
-
-                if data.get("type") in ("Polygon", "MultiPolygon"):
-                    return data
-
-            raise RuntimeError(f"JSON inesperado para município {codibge}")
-
-        except Exception as e:
-            last_err = e
-            wait_s = min(2 ** (attempt - 1), 12)
-            print(f"Falha ao baixar malha do município {codibge} (tentativa {attempt}/4): {e}")
-            time.sleep(wait_s)
-
-    print(f"Falha final ao baixar malha do município {codibge}: {last_err}")
-    return None
-
-
-def get_municipality_geometry(codibge: str, cache: dict) -> Optional[dict]:
-    items = cache.setdefault("items", {})
-    key = norm(codibge)
-    if not key:
-        return None
-
-    if key in items and items[key].get("geometry"):
-        return items[key]["geometry"]
-
-    geom = fetch_municipality_geometry(key)
-    if geom:
-        items[key] = {
-            "fetched_at": datetime.now(timezone.utc).isoformat(),
-            "geometry": geom,
-        }
-        return geom
-
-    return None
 
 
 # =========================
@@ -558,39 +456,49 @@ def filter_alerts_last_hours(history: Dict[str, dict], now_utc: datetime, hours:
 # =========================
 
 
-def build_category_municipality_map(alerts_24h: List[dict], category: str) -> Dict[str, dict]:
-    result: Dict[str, dict] = {}
+def build_category_points(alerts_24h: List[dict], category: str) -> List[dict]:
+    result: List[dict] = []
 
     for a in alerts_24h:
         tp = tipo_evento(a.get("evento"))
         if tp != category:
             continue
 
-        codibge = norm(a.get("codibge"))
         nivel = norm(a.get("nivel"))
 
-        if not codibge or nivel not in LEVEL_ORDER:
+        if nivel not in LEVEL_ORDER:
             continue
 
-        prev = result.get(codibge)
-        if prev is None or nivel_rank(nivel) > nivel_rank(prev["nivel"]):
-            result[codibge] = {
-                "codibge": codibge,
+        lat = a.get("latitude")
+        lon = a.get("longitude")
+
+        try:
+            latf = float(lat)
+            lonf = float(lon)
+        except Exception:
+            continue
+
+        result.append(
+            {
+                "cod_alerta": norm(a.get("cod_alerta")),
+                "codibge": norm(a.get("codibge")),
                 "municipio": norm(a.get("municipio")),
                 "uf": norm(a.get("uf")),
-                "nivel": nivel,
                 "evento": norm(a.get("evento")),
                 "evento_tipo": evento_tipo_bruto(a.get("evento")),
-                "cod_alerta": norm(a.get("cod_alerta")),
+                "nivel": nivel,
+                "latitude": latf,
+                "longitude": lonf,
                 "created_at_iso": a.get("created_at_iso"),
             }
+        )
 
     return result
 
 
-def count_levels(muni_map: Dict[str, dict]) -> Dict[str, int]:
+def count_levels_from_points(points: List[dict]) -> Dict[str, int]:
     counts = {"Muito Alto": 0, "Alto": 0, "Moderado": 0}
-    for item in muni_map.values():
+    for item in points:
         niv = norm(item.get("nivel"))
         if niv in counts:
             counts[niv] += 1
@@ -615,11 +523,11 @@ def build_24h_signature(alerts_24h: List[dict]) -> str:
 
 
 def summarize_24h(alerts_24h: List[dict], current_vigentes: List[dict], now_utc: datetime) -> str:
-    hid = build_category_municipality_map(alerts_24h, "hidrologico")
-    geo = build_category_municipality_map(alerts_24h, "geologico")
+    hid = build_category_points(alerts_24h, "hidrologico")
+    geo = build_category_points(alerts_24h, "geologico")
 
-    hid_counts = count_levels(hid)
-    geo_counts = count_levels(geo)
+    hid_counts = count_levels_from_points(hid)
+    geo_counts = count_levels_from_points(geo)
 
     start_dt = now_utc - timedelta(hours=MAP_WINDOW_HOURS)
 
@@ -630,12 +538,12 @@ def summarize_24h(alerts_24h: List[dict], current_vigentes: List[dict], now_utc:
         f"Alertas vigentes no feed agora: {len(current_vigentes)}",
         f"Alertas capturados nas últimas 24h: {len(alerts_24h)}",
         "",
-        f"🌊 Hidrológico - municípios: {len(hid)}",
+        f"🌊 Hidrológico - alertas: {len(hid)}",
         f"{emoji_nivel('Muito Alto')} Muito Alto: {hid_counts['Muito Alto']}",
         f"{emoji_nivel('Alto')} Alto: {hid_counts['Alto']}",
         f"{emoji_nivel('Moderado')} Moderado: {hid_counts['Moderado']}",
         "",
-        f"⛰️ Geológico - municípios: {len(geo)}",
+        f"⛰️ Geológico - alertas: {len(geo)}",
         f"{emoji_nivel('Muito Alto')} Muito Alto: {geo_counts['Muito Alto']}",
         f"{emoji_nivel('Alto')} Alto: {geo_counts['Alto']}",
         f"{emoji_nivel('Moderado')} Moderado: {geo_counts['Moderado']}",
@@ -650,53 +558,48 @@ def summarize_24h(alerts_24h: List[dict], current_vigentes: List[dict], now_utc:
 
 def render_category_map(
     category_name: str,
-    muni_map: Dict[str, dict],
+    points: List[dict],
     uf_features: List[dict],
-    municipal_cache: dict,
     out_path: str,
     now_utc: datetime,
 ) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Polygon as MplPolygon
     from matplotlib.patches import Patch
+    from matplotlib.lines import Line2D
 
     fig = plt.figure(figsize=(11.8, 11.2))
     ax = fig.add_subplot(111)
     ax.set_facecolor("white")
 
-    missing_geoms: List[str] = []
-
-    for codibge, info in muni_map.items():
-        geom = get_municipality_geometry(codibge, municipal_cache)
-        if not geom:
-            missing_geoms.append(codibge)
-            continue
-
-        rings = geom_to_rings(geom)
-        if not rings:
-            missing_geoms.append(codibge)
-            continue
-
-        facecolor = color_for_level(info["nivel"])
-
-        for ring in rings:
-            patch = MplPolygon(
-                ring,
-                closed=True,
-                facecolor=facecolor,
-                edgecolor="#616161",
-                linewidth=0.25,
-                zorder=2,
-            )
-            ax.add_patch(patch)
-
+    # contorno das UFs
     for feat in uf_features:
         for ring in geom_to_rings(feat.get("geometry")):
             xs = [p[0] for p in ring]
             ys = [p[1] for p in ring]
-            ax.plot(xs, ys, color="#424242", linewidth=0.45, zorder=3)
+            ax.plot(xs, ys, color="#9E9E9E", linewidth=0.5, zorder=1)
+
+    # pontos por nível
+    for nivel in ["Moderado", "Alto", "Muito Alto"]:
+        subset = [p for p in points if norm(p.get("nivel")) == nivel]
+        if not subset:
+            continue
+
+        xs = [p["longitude"] for p in subset]
+        ys = [p["latitude"] for p in subset]
+
+        ax.scatter(
+            xs,
+            ys,
+            s=size_for_level(nivel),
+            c=color_for_level(nivel),
+            edgecolors="black",
+            linewidths=0.4,
+            alpha=0.88,
+            zorder=3,
+            label=nivel,
+        )
 
     xmin, xmax, ymin, ymax = brazil_bbox_from_ufs(uf_features)
     padx = (xmax - xmin) * 0.03
@@ -710,8 +613,8 @@ def render_category_map(
     pretty_name = "Hidrológicos" if category_name == "hidrologico" else "Geológicos"
     period_start = now_utc - timedelta(hours=MAP_WINDOW_HOURS)
 
-    counts = count_levels(muni_map)
-    total_mun = len(muni_map)
+    counts = count_levels_from_points(points)
+    total_alertas = len(points)
 
     ax.set_title(
         f"CEMADEN - Alertas {pretty_name} nas últimas {MAP_WINDOW_HOURS} horas\n"
@@ -721,9 +624,15 @@ def render_category_map(
     )
 
     legend_handles = [
-        Patch(facecolor=LEVEL_COLORS["Moderado"], edgecolor="#616161", label="Moderado"),
-        Patch(facecolor=LEVEL_COLORS["Alto"], edgecolor="#616161", label="Alto"),
-        Patch(facecolor=LEVEL_COLORS["Muito Alto"], edgecolor="#616161", label="Muito Alto"),
+        Line2D([0], [0], marker="o", color="w", label="Moderado",
+               markerfacecolor=LEVEL_COLORS["Moderado"], markeredgecolor="black",
+               markeredgewidth=0.6, markersize=7),
+        Line2D([0], [0], marker="o", color="w", label="Alto",
+               markerfacecolor=LEVEL_COLORS["Alto"], markeredgecolor="black",
+               markeredgewidth=0.6, markersize=9),
+        Line2D([0], [0], marker="o", color="w", label="Muito Alto",
+               markerfacecolor=LEVEL_COLORS["Muito Alto"], markeredgecolor="black",
+               markeredgewidth=0.6, markersize=11),
     ]
     leg = ax.legend(
         handles=legend_handles,
@@ -737,13 +646,11 @@ def render_category_map(
     leg.get_frame().set_edgecolor("#9E9E9E")
 
     summary_lines = [
-        f"Municípios alertados: {total_mun}",
+        f"Alertas plotados: {total_alertas}",
         f"Muito Alto: {counts['Muito Alto']}",
         f"Alto: {counts['Alto']}",
         f"Moderado: {counts['Moderado']}",
     ]
-    if missing_geoms:
-        summary_lines.append(f"Sem geometria: {len(missing_geoms)}")
 
     ax.text(
         0.985,
@@ -769,7 +676,6 @@ def render_category_map(
 
 def main() -> int:
     state = load_state(STATE_PATH)
-    municipal_cache = load_municipal_cache(MUNICIPAL_CACHE_PATH)
     now_utc = datetime.now(timezone.utc)
 
     data = http_get_json(CEMADEN_URL)
@@ -785,8 +691,8 @@ def main() -> int:
     alerts_24h = filter_alerts_last_hours(state["alerts_history"], now_utc, MAP_WINDOW_HOURS)
     alerts_24h.sort(key=lambda a: (a.get("created_at_iso") or "", a.get("cod_alerta") or ""))
 
-    hid_map = build_category_municipality_map(alerts_24h, "hidrologico")
-    geo_map = build_category_municipality_map(alerts_24h, "geologico")
+    hid_points = build_category_points(alerts_24h, "hidrologico")
+    geo_points = build_category_points(alerts_24h, "geologico")
 
     uf_features = load_uf_geojson(UF_GEOJSON_PATH)
 
@@ -795,23 +701,19 @@ def main() -> int:
 
     render_category_map(
         category_name="hidrologico",
-        muni_map=hid_map,
+        points=hid_points,
         uf_features=uf_features,
-        municipal_cache=municipal_cache,
         out_path=out_hid,
         now_utc=now_utc,
     )
 
     render_category_map(
         category_name="geologico",
-        muni_map=geo_map,
+        points=geo_points,
         uf_features=uf_features,
-        municipal_cache=municipal_cache,
         out_path=out_geo,
         now_utc=now_utc,
     )
-
-    save_municipal_cache(MUNICIPAL_CACHE_PATH, municipal_cache)
 
     current_vigentes = [a for a in current_alerts if a.get("status") == 1]
     signature_24h = build_24h_signature(alerts_24h)
