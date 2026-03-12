@@ -37,7 +37,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CEMADEN_URL: "https://painelalertas.cemaden.gov.br/wsAlertas2"
           STATE_PATH: "state/cemaden_seen.json"
-          MUNICIPAL_CACHE_PATH: "state/municipios_cache.json"
           SLEEP_BETWEEN_SENDS_SEC: "1.2"
           TG_MAX_RETRIES: "6"
           TG_EXTRA_BACKOFF_SEC: "1.0"
@@ -46,17 +45,16 @@ jobs:
           HISTORY_HOURS: "48"
           MAP_WINDOW_HOURS: "24"
           SEND_ONLY_ON_CHANGE: "1"
-          IBGE_MALHA_URL_TMPL: "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/{cod}?formato=application%2Fvnd.geo%2Bjson"
         run: |
           python cemaden_watch.py
 
       - name: Commit state if changed
         run: |
-          if git status --porcelain | grep -E "state/cemaden_seen.json|state/municipios_cache.json"; then
+          if git status --porcelain | grep -q "state/cemaden_seen.json"; then
             git config user.name "github-actions"
             git config user.email "github-actions@github.com"
-            git add state/cemaden_seen.json state/municipios_cache.json
-            git commit -m "Update CEMADEN state and municipal cache"
+            git add state/cemaden_seen.json
+            git commit -m "Update CEMADEN state"
             git push
           else
             echo "No state changes."
