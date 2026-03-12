@@ -1,6 +1,6 @@
 {
-  "last_conjunto": "11-03-2026 22:52:02 UTC",
-  "last_run": "2026-03-11T22:52:59.779215+00:00",
+  "last_conjunto": "12-03-2026 05:07:02 UTC",
+  "last_run": "2026-03-12T05:07:11.448305+00:00",
   "alerts_history": {
     "1482": {
       "cod_alerta": "1482",
@@ -17,7 +17,7 @@
       "created_at_iso": "2026-03-10T08:41:43.259000+00:00",
       "updated_at_iso": "2026-03-10T08:41:43.259000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1487": {
       "cod_alerta": "1487",
@@ -34,7 +34,7 @@
       "created_at_iso": "2026-03-10T13:45:12.115000+00:00",
       "updated_at_iso": "2026-03-10T13:45:12.115000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1488": {
       "cod_alerta": "1488",
@@ -51,7 +51,7 @@
       "created_at_iso": "2026-03-10T13:47:11.245000+00:00",
       "updated_at_iso": "2026-03-10T13:47:11.245000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1489": {
       "cod_alerta": "1489",
@@ -68,7 +68,7 @@
       "created_at_iso": "2026-03-10T15:06:59.393000+00:00",
       "updated_at_iso": "2026-03-10T15:06:59.393000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1490": {
       "cod_alerta": "1490",
@@ -85,7 +85,7 @@
       "created_at_iso": "2026-03-10T15:33:10.422000+00:00",
       "updated_at_iso": "2026-03-10T15:33:10.422000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1491": {
       "cod_alerta": "1491",
@@ -102,7 +102,7 @@
       "created_at_iso": "2026-03-10T16:35:31.574000+00:00",
       "updated_at_iso": "2026-03-10T16:35:31.574000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1493": {
       "cod_alerta": "1493",
@@ -119,7 +119,7 @@
       "created_at_iso": "2026-03-10T19:33:15.611000+00:00",
       "updated_at_iso": "2026-03-10T19:33:15.611000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1496": {
       "cod_alerta": "1496",
@@ -136,7 +136,7 @@
       "created_at_iso": "2026-03-11T03:35:09.758000+00:00",
       "updated_at_iso": "2026-03-11T03:35:09.758000+00:00",
       "first_seen_at": "2026-03-11T16:28:34.359283+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1502": {
       "cod_alerta": "1502",
@@ -153,7 +153,7 @@
       "created_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "updated_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1503": {
       "cod_alerta": "1503",
@@ -170,7 +170,7 @@
       "created_at_iso": "2026-03-11T16:36:08.522000+00:00",
       "updated_at_iso": "2026-03-11T16:36:08.522000+00:00",
       "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1504": {
       "cod_alerta": "1504",
@@ -187,7 +187,7 @@
       "created_at_iso": "2026-03-11T16:40:22.876000+00:00",
       "updated_at_iso": "2026-03-11T16:40:22.876000+00:00",
       "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1505": {
       "cod_alerta": "1505",
@@ -204,7 +204,7 @@
       "created_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "updated_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1506": {
       "cod_alerta": "1506",
@@ -221,7 +221,7 @@
       "created_at_iso": "2026-03-11T16:43:00.810000+00:00",
       "updated_at_iso": "2026-03-11T16:43:00.810000+00:00",
       "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1501": {
       "cod_alerta": "1501",
@@ -238,7 +238,7 @@
       "created_at_iso": "2026-03-11T15:56:40.887000+00:00",
       "updated_at_iso": "2026-03-11T17:17:10.584000+00:00",
       "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1507": {
       "cod_alerta": "1507",
@@ -255,7 +255,7 @@
       "created_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "updated_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "first_seen_at": "2026-03-11T21:02:30.391524+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     },
     "1508": {
       "cod_alerta": "1508",
@@ -272,8 +272,127 @@
       "created_at_iso": "2026-03-11T19:24:38.296000+00:00",
       "updated_at_iso": "2026-03-11T19:24:38.296000+00:00",
       "first_seen_at": "2026-03-11T22:52:59.779215+00:00",
-      "last_seen_at": "2026-03-11T22:52:59.779215+00:00"
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
+    },
+    "1509": {
+      "cod_alerta": "1509",
+      "datahoracriacao": "2026-03-11 20:09:48.335",
+      "ult_atualizacao": "2026-03-11 20:09:48.335",
+      "codibge": "3137700",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "LAJINHA",
+      "latitude": -20.143693582642,
+      "longitude": -41.587902585864,
+      "created_at_iso": "2026-03-11T20:09:48.335000+00:00",
+      "updated_at_iso": "2026-03-11T20:09:48.335000+00:00",
+      "first_seen_at": "2026-03-12T05:07:11.448305+00:00",
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
+    },
+    "1510": {
+      "cod_alerta": "1510",
+      "datahoracriacao": "2026-03-11 22:02:04.183",
+      "ult_atualizacao": "2026-03-11 22:02:04.183",
+      "codibge": "3508801",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "SP",
+      "municipio": "CAFELÂNDIA",
+      "latitude": -21.731130617942,
+      "longitude": -49.54863038916,
+      "created_at_iso": "2026-03-11T22:02:04.183000+00:00",
+      "updated_at_iso": "2026-03-11T22:02:04.183000+00:00",
+      "first_seen_at": "2026-03-12T05:07:11.448305+00:00",
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
+    },
+    "1511": {
+      "cod_alerta": "1511",
+      "datahoracriacao": "2026-03-11 23:04:49.79",
+      "ult_atualizacao": "2026-03-11 23:04:49.79",
+      "codibge": "3158953",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "SANTANA DO PARAÍSO",
+      "latitude": -19.385069660852,
+      "longitude": -42.52047448932,
+      "created_at_iso": "2026-03-11T23:04:49.790000+00:00",
+      "updated_at_iso": "2026-03-11T23:04:49.790000+00:00",
+      "first_seen_at": "2026-03-12T05:07:11.448305+00:00",
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
+    },
+    "1512": {
+      "cod_alerta": "1512",
+      "datahoracriacao": "2026-03-11 23:15:07.088",
+      "ult_atualizacao": "2026-03-11 23:15:07.088",
+      "codibge": "3131307",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "IPATINGA",
+      "latitude": -19.438972749232,
+      "longitude": -42.600921984069,
+      "created_at_iso": "2026-03-11T23:15:07.088000+00:00",
+      "updated_at_iso": "2026-03-11T23:15:07.088000+00:00",
+      "first_seen_at": "2026-03-12T05:07:11.448305+00:00",
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
+    },
+    "1513": {
+      "cod_alerta": "1513",
+      "datahoracriacao": "2026-03-12 00:44:28.432",
+      "ult_atualizacao": "2026-03-12 00:44:28.432",
+      "codibge": "3119401",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "CORONEL FABRICIANO",
+      "latitude": -19.458587479076,
+      "longitude": -42.689925045198,
+      "created_at_iso": "2026-03-12T00:44:28.432000+00:00",
+      "updated_at_iso": "2026-03-12T00:44:28.432000+00:00",
+      "first_seen_at": "2026-03-12T05:07:11.448305+00:00",
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
+    },
+    "1514": {
+      "cod_alerta": "1514",
+      "datahoracriacao": "2026-03-12 00:47:35.605",
+      "ult_atualizacao": "2026-03-12 00:47:35.605",
+      "codibge": "3131307",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "IPATINGA",
+      "latitude": -19.438972749232,
+      "longitude": -42.600921984069,
+      "created_at_iso": "2026-03-12T00:47:35.605000+00:00",
+      "updated_at_iso": "2026-03-12T00:47:35.605000+00:00",
+      "first_seen_at": "2026-03-12T05:07:11.448305+00:00",
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
+    },
+    "1515": {
+      "cod_alerta": "1515",
+      "datahoracriacao": "2026-03-12 01:36:17.974",
+      "ult_atualizacao": "2026-03-12 01:36:17.974",
+      "codibge": "3158953",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "SANTANA DO PARAÍSO",
+      "latitude": -19.385069660852,
+      "longitude": -42.52047448932,
+      "created_at_iso": "2026-03-12T01:36:17.974000+00:00",
+      "updated_at_iso": "2026-03-12T01:36:17.974000+00:00",
+      "first_seen_at": "2026-03-12T05:07:11.448305+00:00",
+      "last_seen_at": "2026-03-12T05:07:11.448305+00:00"
     }
   },
-  "last_24h_signature": "1496|2026-03-11T03:35:09.758000+00:00|Alto|Risco Hidrológico - Alto||1501|2026-03-11T15:56:40.887000+00:00|Alto|Risco Hidrológico - Alto||1502|2026-03-11T16:17:22.135000+00:00|Moderado|Movimentos de Massa - Moderado||1503|2026-03-11T16:36:08.522000+00:00|Moderado|Risco Hidrológico - Moderado||1504|2026-03-11T16:40:22.876000+00:00|Moderado|Risco Hidrológico - Moderado||1505|2026-03-11T16:41:23.555000+00:00|Moderado|Movimentos de Massa - Moderado||1506|2026-03-11T16:43:00.810000+00:00|Moderado|Risco Hidrológico - Moderado||1507|2026-03-11T17:31:53.085000+00:00|Moderado|Movimentos de Massa - Moderado||1508|2026-03-11T19:24:38.296000+00:00|Moderado|Risco Hidrológico - Moderado"
+  "last_24h_signature": "1501|2026-03-11T15:56:40.887000+00:00|Alto|Risco Hidrológico - Alto||1502|2026-03-11T16:17:22.135000+00:00|Moderado|Movimentos de Massa - Moderado||1503|2026-03-11T16:36:08.522000+00:00|Moderado|Risco Hidrológico - Moderado||1504|2026-03-11T16:40:22.876000+00:00|Moderado|Risco Hidrológico - Moderado||1505|2026-03-11T16:41:23.555000+00:00|Moderado|Movimentos de Massa - Moderado||1506|2026-03-11T16:43:00.810000+00:00|Moderado|Risco Hidrológico - Moderado||1507|2026-03-11T17:31:53.085000+00:00|Moderado|Movimentos de Massa - Moderado||1508|2026-03-11T19:24:38.296000+00:00|Moderado|Risco Hidrológico - Moderado||1509|2026-03-11T20:09:48.335000+00:00|Moderado|Risco Hidrológico - Moderado||1510|2026-03-11T22:02:04.183000+00:00|Moderado|Risco Hidrológico - Moderado||1511|2026-03-11T23:04:49.790000+00:00|Moderado|Risco Hidrológico - Moderado||1512|2026-03-11T23:15:07.088000+00:00|Moderado|Risco Hidrológico - Moderado||1513|2026-03-12T00:44:28.432000+00:00|Moderado|Risco Hidrológico - Moderado||1514|2026-03-12T00:47:35.605000+00:00|Moderado|Movimentos de Massa - Moderado||1515|2026-03-12T01:36:17.974000+00:00|Moderado|Movimentos de Massa - Moderado"
 }
