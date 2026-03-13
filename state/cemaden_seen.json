@@ -1,6 +1,6 @@
 {
-  "last_conjunto": "13-03-2026 11:46:02 UTC",
-  "last_run": "2026-03-13T11:46:11.067742+00:00",
+  "last_conjunto": "13-03-2026 13:32:01 UTC",
+  "last_run": "2026-03-13T13:32:57.347913+00:00",
   "alerts_history": {
     "1502": {
       "cod_alerta": "1502",
@@ -17,7 +17,7 @@
       "created_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "updated_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1503": {
       "cod_alerta": "1503",
@@ -68,7 +68,7 @@
       "created_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "updated_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1506": {
       "cod_alerta": "1506",
@@ -119,7 +119,7 @@
       "created_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "updated_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1508": {
       "cod_alerta": "1508",
@@ -221,7 +221,7 @@
       "created_at_iso": "2026-03-12T00:47:35.605000+00:00",
       "updated_at_iso": "2026-03-12T00:47:35.605000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1515": {
       "cod_alerta": "1515",
@@ -238,7 +238,7 @@
       "created_at_iso": "2026-03-12T01:36:17.974000+00:00",
       "updated_at_iso": "2026-03-12T01:36:17.974000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1516": {
       "cod_alerta": "1516",
@@ -255,7 +255,7 @@
       "created_at_iso": "2026-03-12T03:27:33.024000+00:00",
       "updated_at_iso": "2026-03-12T03:27:33.024000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1517": {
       "cod_alerta": "1517",
@@ -306,7 +306,7 @@
       "created_at_iso": "2026-03-12T03:59:04.225000+00:00",
       "updated_at_iso": "2026-03-12T03:59:04.225000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1521": {
       "cod_alerta": "1521",
@@ -323,7 +323,7 @@
       "created_at_iso": "2026-03-12T05:45:25.684000+00:00",
       "updated_at_iso": "2026-03-12T05:45:25.684000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1520": {
       "cod_alerta": "1520",
@@ -391,7 +391,7 @@
       "created_at_iso": "2026-03-12T14:58:06.151000+00:00",
       "updated_at_iso": "2026-03-12T14:58:06.151000+00:00",
       "first_seen_at": "2026-03-12T18:10:07.804799+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1525": {
       "cod_alerta": "1525",
@@ -408,7 +408,7 @@
       "created_at_iso": "2026-03-12T15:33:47.811000+00:00",
       "updated_at_iso": "2026-03-12T15:33:47.811000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1526": {
       "cod_alerta": "1526",
@@ -425,7 +425,7 @@
       "created_at_iso": "2026-03-12T17:08:16.738000+00:00",
       "updated_at_iso": "2026-03-12T17:08:16.738000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1527": {
       "cod_alerta": "1527",
@@ -442,7 +442,7 @@
       "created_at_iso": "2026-03-12T17:17:04.896000+00:00",
       "updated_at_iso": "2026-03-12T17:17:04.896000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1528": {
       "cod_alerta": "1528",
@@ -459,7 +459,7 @@
       "created_at_iso": "2026-03-12T17:19:13.165000+00:00",
       "updated_at_iso": "2026-03-12T17:19:13.165000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1529": {
       "cod_alerta": "1529",
@@ -476,7 +476,7 @@
       "created_at_iso": "2026-03-12T17:24:43.554000+00:00",
       "updated_at_iso": "2026-03-12T17:24:43.554000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1530": {
       "cod_alerta": "1530",
@@ -493,7 +493,7 @@
       "created_at_iso": "2026-03-12T17:26:12.487000+00:00",
       "updated_at_iso": "2026-03-12T17:26:12.487000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1531": {
       "cod_alerta": "1531",
@@ -510,7 +510,7 @@
       "created_at_iso": "2026-03-12T17:26:55.057000+00:00",
       "updated_at_iso": "2026-03-12T17:26:55.057000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1532": {
       "cod_alerta": "1532",
@@ -527,7 +527,7 @@
       "created_at_iso": "2026-03-12T17:40:36.245000+00:00",
       "updated_at_iso": "2026-03-12T17:40:36.245000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1533": {
       "cod_alerta": "1533",
@@ -544,7 +544,7 @@
       "created_at_iso": "2026-03-12T18:29:53.229000+00:00",
       "updated_at_iso": "2026-03-12T18:29:53.229000+00:00",
       "first_seen_at": "2026-03-12T22:57:40.561979+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1534": {
       "cod_alerta": "1534",
@@ -561,7 +561,7 @@
       "created_at_iso": "2026-03-12T18:42:45.703000+00:00",
       "updated_at_iso": "2026-03-12T18:42:45.703000+00:00",
       "first_seen_at": "2026-03-12T22:57:40.561979+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1535": {
       "cod_alerta": "1535",
@@ -578,7 +578,7 @@
       "created_at_iso": "2026-03-12T18:43:36.596000+00:00",
       "updated_at_iso": "2026-03-12T18:43:36.596000+00:00",
       "first_seen_at": "2026-03-12T22:57:40.561979+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1536": {
       "cod_alerta": "1536",
@@ -595,7 +595,7 @@
       "created_at_iso": "2026-03-12T23:04:16.192000+00:00",
       "updated_at_iso": "2026-03-12T23:04:16.192000+00:00",
       "first_seen_at": "2026-03-13T05:05:04.148427+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1537": {
       "cod_alerta": "1537",
@@ -629,7 +629,7 @@
       "created_at_iso": "2026-03-13T01:30:51.290000+00:00",
       "updated_at_iso": "2026-03-13T01:30:51.290000+00:00",
       "first_seen_at": "2026-03-13T05:05:04.148427+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1539": {
       "cod_alerta": "1539",
@@ -646,7 +646,7 @@
       "created_at_iso": "2026-03-13T01:45:05.433000+00:00",
       "updated_at_iso": "2026-03-13T01:45:05.433000+00:00",
       "first_seen_at": "2026-03-13T05:05:04.148427+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     },
     "1540": {
       "cod_alerta": "1540",
@@ -663,8 +663,77 @@
       "created_at_iso": "2026-03-13T03:27:29.710000+00:00",
       "updated_at_iso": "2026-03-13T03:27:29.710000+00:00",
       "first_seen_at": "2026-03-13T07:59:23.396276+00:00",
-      "last_seen_at": "2026-03-13T11:46:11.067742+00:00"
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
+    },
+    "1487": {
+      "cod_alerta": "1487",
+      "datahoracriacao": "2026-03-10 13:45:12.115",
+      "ult_atualizacao": "2026-03-10 13:45:12.115",
+      "codibge": "3131703",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "ITABIRA",
+      "latitude": -19.600608398588,
+      "longitude": -43.29991272009,
+      "created_at_iso": "2026-03-10T13:45:12.115000+00:00",
+      "updated_at_iso": "2026-03-10T13:45:12.115000+00:00",
+      "first_seen_at": "2026-03-13T13:32:57.347913+00:00",
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
+    },
+    "1488": {
+      "cod_alerta": "1488",
+      "datahoracriacao": "2026-03-10 13:47:11.245",
+      "ult_atualizacao": "2026-03-10 13:47:11.245",
+      "codibge": "3118601",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "CONTAGEM",
+      "latitude": -19.887353851292,
+      "longitude": -44.083929048253,
+      "created_at_iso": "2026-03-10T13:47:11.245000+00:00",
+      "updated_at_iso": "2026-03-10T13:47:11.245000+00:00",
+      "first_seen_at": "2026-03-13T13:32:57.347913+00:00",
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
+    },
+    "1490": {
+      "cod_alerta": "1490",
+      "datahoracriacao": "2026-03-10 15:33:10.422",
+      "ult_atualizacao": "2026-03-10 15:33:10.422",
+      "codibge": "3136207",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "JOÃO MONLEVADE",
+      "latitude": -19.837941198792,
+      "longitude": -43.161486132665,
+      "created_at_iso": "2026-03-10T15:33:10.422000+00:00",
+      "updated_at_iso": "2026-03-10T15:33:10.422000+00:00",
+      "first_seen_at": "2026-03-13T13:32:57.347913+00:00",
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
+    },
+    "1496": {
+      "cod_alerta": "1496",
+      "datahoracriacao": "2026-03-11 03:35:09.758",
+      "ult_atualizacao": "2026-03-11 03:35:09.758",
+      "codibge": "2902708",
+      "evento": "Risco Hidrológico - Alto",
+      "nivel": "Alto",
+      "status": 1,
+      "uf": "BA",
+      "municipio": "BARRA",
+      "latitude": -11.031844588599,
+      "longitude": -43.366821769166,
+      "created_at_iso": "2026-03-11T03:35:09.758000+00:00",
+      "updated_at_iso": "2026-03-11T03:35:09.758000+00:00",
+      "first_seen_at": "2026-03-13T13:32:57.347913+00:00",
+      "last_seen_at": "2026-03-13T13:32:57.347913+00:00"
     }
   },
-  "last_24h_signature": "1522|2026-03-12T11:54:35.698000+00:00|Moderado|Risco Hidrológico - Moderado||1523|2026-03-12T14:18:56.662000+00:00|Moderado|Risco Hidrológico - Moderado||1524|2026-03-12T14:58:06.151000+00:00|Moderado|Risco Hidrológico - Moderado||1525|2026-03-12T15:33:47.811000+00:00|Moderado|Risco Hidrológico - Moderado||1526|2026-03-12T17:08:16.738000+00:00|Moderado|Movimentos de Massa - Moderado||1527|2026-03-12T17:17:04.896000+00:00|Moderado|Risco Hidrológico - Moderado||1528|2026-03-12T17:19:13.165000+00:00|Moderado|Risco Hidrológico - Moderado||1529|2026-03-12T17:24:43.554000+00:00|Moderado|Risco Hidrológico - Moderado||1530|2026-03-12T17:26:12.487000+00:00|Moderado|Risco Hidrológico - Moderado||1531|2026-03-12T17:26:55.057000+00:00|Moderado|Risco Hidrológico - Moderado||1532|2026-03-12T17:40:36.245000+00:00|Moderado|Movimentos de Massa - Moderado||1533|2026-03-12T18:29:53.229000+00:00|Moderado|Risco Hidrológico - Moderado||1534|2026-03-12T18:42:45.703000+00:00|Moderado|Movimentos de Massa - Moderado||1535|2026-03-12T18:43:36.596000+00:00|Moderado|Risco Hidrológico - Moderado||1536|2026-03-12T23:04:16.192000+00:00|Moderado|Movimentos de Massa - Moderado||1537|2026-03-13T01:01:29.387000+00:00|Moderado|Risco Hidrológico - Moderado||1538|2026-03-13T01:30:51.290000+00:00|Moderado|Movimentos de Massa - Moderado||1539|2026-03-13T01:45:05.433000+00:00|Moderado|Movimentos de Massa - Moderado||1540|2026-03-13T03:27:29.710000+00:00|Moderado|Movimentos de Massa - Moderado"
+  "last_24h_signature": "1522|2026-03-12T11:54:35.698000+00:00|Moderado|Risco Hidrológico - Moderado||1523|2026-03-12T14:18:56.662000+00:00|Moderado|Risco Hidrológico - Moderado||1524|2026-03-12T14:58:06.151000+00:00|Moderado|Risco Hidrológico - Moderado||1525|2026-03-12T15:33:47.811000+00:00|Moderado|Risco Hidrológico - Moderado||1526|2026-03-12T17:08:16.738000+00:00|Moderado|Movimentos de Massa - Moderado||1527|2026-03-12T17:17:04.896000+00:00|Moderado|Risco Hidrológico - Moderado||1528|2026-03-12T17:19:13.165000+00:00|Moderado|Risco Hidrológico - Moderado||1529|2026-03-12T17:24:43.554000+00:00|Moderado|Risco Hidrológico - Moderado||1530|2026-03-12T17:26:12.487000+00:00|Moderado|Risco Hidrológico - Moderado||1531|2026-03-12T17:26:55.057000+00:00|Moderado|Risco Hidrológico - Moderado||1532|2026-03-12T17:40:36.245000+00:00|Moderado|Movimentos de Massa - Moderado||1533|2026-03-12T18:29:53.229000+00:00|Moderado|Risco Hidrológico - Moderado||1534|2026-03-12T18:42:45.703000+00:00|Moderado|Movimentos de Massa - Moderado||1535|2026-03-12T18:43:36.596000+00:00|Moderado|Risco Hidrológico - Moderado||1536|2026-03-12T23:04:16.192000+00:00|Moderado|Movimentos de Massa - Moderado||1537|2026-03-13T01:01:29.387000+00:00|Moderado|Risco Hidrológico - Moderado||1538|2026-03-13T01:30:51.290000+00:00|Moderado|Movimentos de Massa - Moderado||1539|2026-03-13T01:45:05.433000+00:00|Moderado|Movimentos de Massa - Moderado||1540|2026-03-13T03:27:29.710000+00:00|Moderado|Movimentos de Massa - Moderado",
+  "last_open_signature": "1309|Risco Hidrológico - Alto|Alto|BOM JESUS DA LAPA|BA|-13.277371576949|-43.288933967397||1395|Movimentos de Massa - Moderado|Moderado|MANAUS|AM|-2.6259193827197|-60.259628014208||1399|Movimentos de Massa - Moderado|Moderado|BELO HORIZONTE|MG|-19.902739296534|-43.959883509799||1401|Movimentos de Massa - Moderado|Moderado|RIBEIRÃO DAS NEVES|MG|-19.779560574558|-44.072069684195||1414|Movimentos de Massa - Moderado|Moderado|AMPARO|SP|-22.699130177417|-46.798779186017||1421|Movimentos de Massa - Moderado|Moderado|CAMPINAS|SP|-22.883760232437|-47.043782026716||1428|Movimentos de Massa - Moderado|Moderado|SUMARÉ|SP|-22.841993844573|-47.262912722129||1434|Movimentos de Massa - Moderado|Moderado|SANTO ANDRÉ|SP|-23.725859|-46.468854||1435|Movimentos de Massa - Alto|Alto|SOROCABA|SP|-23.464522516105|-47.446782619358||1437|Movimentos de Massa - Moderado|Moderado|VOTORANTIM|SP|-23.579911397867|-47.406445189693||1443|Risco Hidrológico - Alto|Alto|ATIBAIA|SP|-23.123262432441|-46.586787635839||1467|Movimentos de Massa - Alto|Alto|UBATUBA|SP|-23.382537334126|-45.024209712382||1478|Movimentos de Massa - Moderado|Moderado|BARBACENA|MG|-21.251514027907|-43.800625996624||1480|Movimentos de Massa - Moderado|Moderado|MURIAÉ|MG|-21.091371949788|-42.421457967788||1482|Movimentos de Massa - Moderado|Moderado|PERUÍBE|SP|-24.278975442978|-47.012822628386||1487|Movimentos de Massa - Moderado|Moderado|ITABIRA|MG|-19.600608398588|-43.29991272009||1488|Movimentos de Massa - Moderado|Moderado|CONTAGEM|MG|-19.887353851292|-44.083929048253||1490|Movimentos de Massa - Moderado|Moderado|JOÃO MONLEVADE|MG|-19.837941198792|-43.161486132665||1496|Risco Hidrológico - Alto|Alto|BARRA|BA|-11.031844588599|-43.366821769166||1502|Movimentos de Massa - Moderado|Moderado|MARIANA|MG|-20.32910250416|-43.331334041862||1505|Movimentos de Massa - Moderado|Moderado|CONSELHEIRO LAFAIETE|MG|-20.666008441146|-43.788656797159||1507|Movimentos de Massa - Moderado|Moderado|MANHUMIRIM|MG|-20.347320794114|-41.939402204186||1514|Movimentos de Massa - Moderado|Moderado|IPATINGA|MG|-19.438972749232|-42.600921984069||1515|Movimentos de Massa - Moderado|Moderado|SANTANA DO PARAÍSO|MG|-19.385069660852|-42.52047448932||1516|Movimentos de Massa - Moderado|Moderado|MARÍLIA|SP|-22.178295267989|-49.983025395743||1519|Risco Hidrológico - Moderado|Moderado|ITATIBA|SP|-23.006717264789|-46.814296833428||1521|Movimentos de Massa - Moderado|Moderado|ITUPEVA|SP|-23.146514144169|-47.068403089877||1524|Risco Hidrológico - Moderado|Moderado|JUIZ DE FORA|MG|-21.745493419123|-43.464736687699||1525|Risco Hidrológico - Moderado|Moderado|MATIAS BARBOSA|MG|-21.871015769069|-43.308000359172||1526|Movimentos de Massa - Moderado|Moderado|JUIZ DE FORA|MG|-21.745493419123|-43.464736687699||1527|Risco Hidrológico - Moderado|Moderado|OURO PRETO|MG|-20.391103859253|-43.610387744137||1528|Risco Hidrológico - Moderado|Moderado|BETIM|MG|-19.947673574221|-44.199267165388||1529|Risco Hidrológico - Moderado|Moderado|BELO HORIZONTE|MG|-19.902739296534|-43.959883509799||1530|Risco Hidrológico - Moderado|Moderado|CONTAGEM|MG|-19.887353851292|-44.083929048253||1531|Risco Hidrológico - Moderado|Moderado|IBIRITÉ|MG|-20.023539077525|-44.068542524813||1532|Movimentos de Massa - Moderado|Moderado|OURO PRETO|MG|-20.391103859253|-43.610387744137||1533|Risco Hidrológico - Moderado|Moderado|NOVA LIMA|MG|-20.074147704979|-43.903946290446||1534|Movimentos de Massa - Moderado|Moderado|CATAGUASES|MG|-21.342414858101|-42.674057071858||1535|Risco Hidrológico - Moderado|Moderado|CATAGUASES|MG|-21.342414858101|-42.674057071858||1536|Movimentos de Massa - Moderado|Moderado|ATIBAIA|SP|-23.123262432441|-46.586787635839||1538|Movimentos de Massa - Moderado|Moderado|BETIM|MG|-19.947673574221|-44.199267165388||1539|Movimentos de Massa - Moderado|Moderado|IBIRITÉ|MG|-20.023539077525|-44.068542524813||1540|Movimentos de Massa - Moderado|Moderado|SENHORA DE OLIVEIRA|MG|-20.800999936969|-43.349449023174"
 }
