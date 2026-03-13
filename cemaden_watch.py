@@ -377,7 +377,7 @@ def build_open_signature(alerts: List[dict]) -> str:
 
 def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
     x = 0.02
-    y_top = 0.97
+    y_top = 0.38
     line_gap = 0.043
 
     rows = [
@@ -396,7 +396,7 @@ def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
     box_width = 0.24
 
     patch = FancyBboxPatch(
-        (x - 0.01, y_top - box_height + 0.005),
+        (x - 0.01, y_top - 0.01),
         box_width,
         box_height,
         boxstyle="round,pad=0.015",
@@ -409,8 +409,7 @@ def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
     )
     ax.add_patch(patch)
 
-    y = y_top
-
+    y = y_top + box_height - 0.01
     for idx, (label, cat, lvl) in enumerate(rows):
         if idx == 0:
             ax.text(
@@ -418,7 +417,7 @@ def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
                 y,
                 label,
                 transform=ax.transAxes,
-                fontsize=10,
+                fontsize=9.5,
                 fontweight="bold",
                 va="top",
                 ha="left",
@@ -433,7 +432,7 @@ def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
                 y,
                 label,
                 transform=ax.transAxes,
-                fontsize=9.5,
+                fontsize=8.8,
                 fontweight="bold",
                 va="top",
                 ha="left",
