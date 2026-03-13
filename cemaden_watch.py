@@ -6,7 +6,6 @@ import os
 import time
 import uuid
 import urllib.request
-import urllib.error
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 from typing import Dict, List, Tuple, Any, Optional
@@ -34,11 +33,9 @@ TG_EXTRA_BACKOFF_SEC = float(os.environ.get("TG_EXTRA_BACKOFF_SEC", "1.0"))
 
 MAX_TG_MESSAGE_LEN = 4096
 SEND_MAPS = os.environ.get("SEND_MAPS", "1").strip() == "1"
-
-HISTORY_HOURS = int(os.environ.get("HISTORY_HOURS", "48"))
-MAP_WINDOW_HOURS = int(os.environ.get("MAP_WINDOW_HOURS", "24"))
-
 SEND_ONLY_ON_CHANGE = os.environ.get("SEND_ONLY_ON_CHANGE", "1").strip() == "1"
+
+HISTORY_HOURS = int(os.environ.get("HISTORY_HOURS", "72"))
 
 TZ = ZoneInfo("America/Sao_Paulo")
 ALERT_SOURCE_TZ = timezone.utc
@@ -56,9 +53,9 @@ LEVEL_ORDER = {
 }
 
 LEVEL_SIZES = {
-    "Moderado": 40,
-    "Alto": 70,
-    "Muito Alto": 110,
+    "Moderado": 42,
+    "Alto": 72,
+    "Muito Alto": 112,
 }
 
 # =========================
@@ -72,11 +69,13 @@ def ensure_parent_dir(path: str) -> None:
         os.makedirs(d, exist_ok=True)
 
 
+
 def http_get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/6.4"})
+    req = urllib.request.Request(url, headers={"User-Agent": "cemaden-watch/7.0"})
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
+
 
 
 def load_json_file(path: str, default: Any) -> Any:
@@ -92,11 +91,11 @@ def load_json_file(path: str, default: Any) -> Any:
             return default
 
         return json.loads(content)
-
     except Exception as e:
         print(f"Falha ao ler JSON {path}: {e}")
         print("Vou seguir com o valor padrão.")
         return default
+
 
 
 def save_json_file(path: str, data: Any) -> None:
@@ -111,6 +110,7 @@ def save_json_file(path: str, data: Any) -> None:
     os.replace(tmp_path, path)
 
 
+
 def load_state(path: str) -> dict:
     st = load_json_file(
         path,
@@ -118,14 +118,15 @@ def load_state(path: str) -> dict:
             "last_conjunto": None,
             "last_run": None,
             "alerts_history": {},
-            "last_24h_signature": None,
+            "last_open_signature": None,
         },
     )
     st.setdefault("last_conjunto", None)
     st.setdefault("last_run", None)
     st.setdefault("alerts_history", {})
-    st.setdefault("last_24h_signature", None)
+    st.setdefault("last_open_signature", None)
     return st
+
 
 
 def save_state(path: str, data: dict) -> None:
@@ -144,6 +145,7 @@ def _tg_request_json(method: str, payload: dict) -> dict:
     with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
         raw = resp.read().decode("utf-8", errors="replace")
     return json.loads(raw)
+
 
 
 def split_message(text: str, max_len: int) -> List[str]:
@@ -170,6 +172,7 @@ def split_message(text: str, max_len: int) -> List[str]:
     return parts
 
 
+
 def _tg_send_text_with_retry(text: str) -> None:
     last_err = None
     for attempt in range(1, TG_MAX_RETRIES + 1):
@@ -191,6 +194,7 @@ def _tg_send_text_with_retry(text: str) -> None:
     raise last_err
 
 
+
 def tg_send_text(text: str) -> None:
     if not TG_TOKEN or not TG_CHAT_ID:
         print("TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID não definidos. Não vou enviar nada.")
@@ -201,6 +205,7 @@ def tg_send_text(text: str) -> None:
         _tg_send_text_with_retry(part)
         if i < len(parts):
             time.sleep(SLEEP_BETWEEN_SENDS_SEC)
+
 
 
 def tg_send_photo(photo_path: str, caption: str = "") -> None:
@@ -270,6 +275,7 @@ def norm(s: Any) -> str:
     return str(s or "").strip()
 
 
+
 def parse_alert_dt(s: str) -> Optional[datetime]:
     txt = norm(s)
     if not txt:
@@ -282,8 +288,10 @@ def parse_alert_dt(s: str) -> Optional[datetime]:
     return None
 
 
+
 def dt_to_iso(dt: Optional[datetime]) -> Optional[str]:
     return dt.isoformat() if dt else None
+
 
 
 def iso_to_dt(s: str) -> Optional[datetime]:
@@ -296,14 +304,12 @@ def iso_to_dt(s: str) -> Optional[datetime]:
         return None
 
 
+
 def fmt_dt_local(dt: Optional[datetime]) -> str:
     if not dt:
         return "-"
     return dt.astimezone(TZ).strftime("%d/%m/%Y %H:%M")
 
-
-def nivel_rank(nivel: str) -> int:
-    return LEVEL_ORDER.get(norm(nivel), 0)
 
 
 def evento_tipo_bruto(evento: str) -> str:
@@ -313,21 +319,25 @@ def evento_tipo_bruto(evento: str) -> str:
     return txt
 
 
+
 def tipo_evento(evento: str) -> Optional[str]:
-    base = evento_tipo_bruto(evento).lower()
-    if "hidrol" in base:
+    base = evento_tipo_bruto(evento).strip().lower()
+    if base in {"hidrológico", "hidrologico"}:
         return "hidrologico"
-    if "mov" in base or "massa" in base:
+    if base == "movimento de massa":
         return "geologico"
     return None
+
 
 
 def color_for_level(nivel: str) -> str:
     return LEVEL_COLORS.get(norm(nivel), "#9E9E9E")
 
 
+
 def size_for_level(nivel: str) -> int:
     return LEVEL_SIZES.get(norm(nivel), 35)
+
 
 
 def emoji_nivel(nivel: str) -> str:
@@ -357,6 +367,7 @@ def load_uf_geojson(path: str) -> List[dict]:
     return feats
 
 
+
 def geom_to_rings(geometry: dict) -> List[List[Tuple[float, float]]]:
     if not geometry:
         return []
@@ -376,6 +387,7 @@ def geom_to_rings(geometry: dict) -> List[List[Tuple[float, float]]]:
                 rings.append([(float(p[0]), float(p[1])) for p in outer])
 
     return rings
+
 
 
 def brazil_bbox_from_ufs(uf_features: List[dict]) -> Tuple[float, float, float, float]:
@@ -433,7 +445,6 @@ def merge_current_feed_into_history(history: Dict[str, dict], current_alerts: Li
     for cod, item in history.items():
         created_dt = iso_to_dt(item.get("created_at_iso", ""))
         last_seen_dt = iso_to_dt(item.get("last_seen_at", ""))
-
         ref_dt = created_dt or last_seen_dt
         if ref_dt and ref_dt >= min_dt:
             keep[cod] = item
@@ -441,31 +452,20 @@ def merge_current_feed_into_history(history: Dict[str, dict], current_alerts: Li
     return keep
 
 
-def filter_alerts_last_hours(history: Dict[str, dict], now_utc: datetime, hours: int) -> List[dict]:
-    cutoff = now_utc - timedelta(hours=hours)
-    out: List[dict] = []
-    for item in history.values():
-        created_dt = iso_to_dt(item.get("created_at_iso", ""))
-        if created_dt and created_dt >= cutoff:
-            out.append(item)
-    return out
-
-
 # =========================
 # AGREGAÇÃO PARA MAPAS
 # =========================
 
 
-def build_category_points(alerts_24h: List[dict], category: str) -> List[dict]:
+def build_category_points(alerts: List[dict], category: str) -> List[dict]:
     result: List[dict] = []
 
-    for a in alerts_24h:
+    for a in alerts:
         tp = tipo_evento(a.get("evento"))
         if tp != category:
             continue
 
         nivel = norm(a.get("nivel"))
-
         if nivel not in LEVEL_ORDER:
             continue
 
@@ -478,6 +478,9 @@ def build_category_points(alerts_24h: List[dict], category: str) -> List[dict]:
         except Exception:
             continue
 
+        created_dt = parse_alert_dt(a.get("datahoracriacao"))
+        created_iso = dt_to_iso(created_dt) or norm(a.get("created_at_iso"))
+
         result.append(
             {
                 "cod_alerta": norm(a.get("cod_alerta")),
@@ -489,11 +492,12 @@ def build_category_points(alerts_24h: List[dict], category: str) -> List[dict]:
                 "nivel": nivel,
                 "latitude": latf,
                 "longitude": lonf,
-                "created_at_iso": a.get("created_at_iso"),
+                "created_at_iso": created_iso,
             }
         )
 
     return result
+
 
 
 def count_levels_from_points(points: List[dict]) -> Dict[str, int]:
@@ -505,14 +509,42 @@ def count_levels_from_points(points: List[dict]) -> Dict[str, int]:
     return counts
 
 
-def build_24h_signature(alerts_24h: List[dict]) -> str:
+
+def count_open_alerts_by_category_and_level(open_alerts: List[dict]) -> Dict[str, Dict[str, int]]:
+    result = {
+        "hidrologico": {"Muito Alto": 0, "Alto": 0, "Moderado": 0},
+        "geologico": {"Muito Alto": 0, "Alto": 0, "Moderado": 0},
+    }
+
+    for a in open_alerts:
+        if a.get("status") != 1:
+            continue
+
+        categoria = tipo_evento(a.get("evento"))
+        nivel = norm(a.get("nivel"))
+
+        if categoria in result and nivel in result[categoria]:
+            result[categoria][nivel] += 1
+
+    return result
+
+
+
+def build_open_signature(alerts: List[dict]) -> str:
     parts = []
-    for a in alerts_24h:
+    for a in alerts:
+        if a.get("status") != 1:
+            continue
+
         cod = norm(a.get("cod_alerta"))
-        created = norm(a.get("created_at_iso"))
         nivel = norm(a.get("nivel"))
         evento = norm(a.get("evento"))
-        parts.append(f"{cod}|{created}|{nivel}|{evento}")
+        municipio = norm(a.get("municipio"))
+        uf = norm(a.get("uf"))
+        lat = norm(a.get("latitude"))
+        lon = norm(a.get("longitude"))
+        parts.append(f"{cod}|{evento}|{nivel}|{municipio}|{uf}|{lat}|{lon}")
+
     parts.sort()
     return "||".join(parts)
 
@@ -522,28 +554,28 @@ def build_24h_signature(alerts_24h: List[dict]) -> str:
 # =========================
 
 
-def summarize_24h(alerts_24h: List[dict], current_vigentes: List[dict], now_utc: datetime) -> str:
-    hid = build_category_points(alerts_24h, "hidrologico")
-    geo = build_category_points(alerts_24h, "geologico")
+def summarize_open_alerts(current_vigentes: List[dict], now_utc: datetime) -> str:
+    hid = build_category_points(current_vigentes, "hidrologico")
+    geo = build_category_points(current_vigentes, "geologico")
 
     hid_counts = count_levels_from_points(hid)
     geo_counts = count_levels_from_points(geo)
 
-    start_dt = now_utc - timedelta(hours=MAP_WINDOW_HOURS)
+    total_plotados = len(hid) + len(geo)
 
     lines = [
-        "📊 CEMADEN - janela móvel de 24h",
-        f"Período: {fmt_dt_local(start_dt)} até {fmt_dt_local(now_utc)}",
+        "📊 CEMADEN - alertas abertos",
+        f"Atualizado em: {fmt_dt_local(now_utc)}",
         "",
-        f"Alertas vigentes no feed agora: {len(current_vigentes)}",
-        f"Alertas capturados nas últimas 24h: {len(alerts_24h)}",
+        f"Alertas abertos no feed: {len(current_vigentes)}",
+        f"Alertas plotados nos mapas: {total_plotados}",
         "",
-        f"🌊 Hidrológico - alertas: {len(hid)}",
+        f"🌊 Hidrológico: {len(hid)}",
         f"{emoji_nivel('Muito Alto')} Muito Alto: {hid_counts['Muito Alto']}",
         f"{emoji_nivel('Alto')} Alto: {hid_counts['Alto']}",
         f"{emoji_nivel('Moderado')} Moderado: {hid_counts['Moderado']}",
         "",
-        f"⛰️ Geológico - alertas: {len(geo)}",
+        f"⛰️ Geológico: {len(geo)}",
         f"{emoji_nivel('Muito Alto')} Muito Alto: {geo_counts['Muito Alto']}",
         f"{emoji_nivel('Alto')} Alto: {geo_counts['Alto']}",
         f"{emoji_nivel('Moderado')} Moderado: {geo_counts['Moderado']}",
@@ -556,31 +588,124 @@ def summarize_24h(alerts_24h: List[dict], current_vigentes: List[dict], now_utc:
 # =========================
 
 
+def draw_dual_legend(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
+    from matplotlib.patches import Circle
+
+    x0 = 0.025
+    y0 = 0.27
+    dy = 0.045
+    r = 0.0085
+
+    ax.text(
+        x0,
+        y0,
+        "Hidro",
+        transform=ax.transAxes,
+        fontsize=10,
+        fontweight="bold",
+        va="top",
+        ha="left",
+        zorder=11,
+    )
+
+    for i, nivel in enumerate(["Muito Alto", "Alto", "Moderado"], start=1):
+        y = y0 - i * dy
+        circ = Circle(
+            (x0 + 0.012, y + 0.003),
+            r,
+            transform=ax.transAxes,
+            facecolor=LEVEL_COLORS[nivel],
+            edgecolor="black",
+            linewidth=0.5,
+            zorder=11,
+        )
+        ax.add_patch(circ)
+        ax.text(
+            x0 + 0.03,
+            y,
+            f"{nivel}: {open_counts['hidrologico'][nivel]}",
+            transform=ax.transAxes,
+            fontsize=9,
+            va="bottom",
+            ha="left",
+            color="black",
+            zorder=11,
+        )
+
+    y_geo = y0 - 4.6 * dy
+    ax.text(
+        x0,
+        y_geo,
+        "Geo",
+        transform=ax.transAxes,
+        fontsize=10,
+        fontweight="bold",
+        va="top",
+        ha="left",
+        zorder=11,
+    )
+
+    for i, nivel in enumerate(["Muito Alto", "Alto", "Moderado"], start=1):
+        y = y_geo - i * dy
+        circ = Circle(
+            (x0 + 0.012, y + 0.003),
+            r,
+            transform=ax.transAxes,
+            facecolor=LEVEL_COLORS[nivel],
+            edgecolor="black",
+            linewidth=0.5,
+            zorder=11,
+        )
+        ax.add_patch(circ)
+        ax.text(
+            x0 + 0.03,
+            y,
+            f"{nivel}: {open_counts['geologico'][nivel]}",
+            transform=ax.transAxes,
+            fontsize=9,
+            va="bottom",
+            ha="left",
+            color="black",
+            zorder=11,
+        )
+
+    ax.text(
+        x0,
+        y0 + 0.05,
+        "Resumo dos alertas abertos",
+        transform=ax.transAxes,
+        fontsize=10,
+        fontweight="bold",
+        va="bottom",
+        ha="left",
+        bbox=dict(boxstyle="round,pad=0.45", facecolor="white", edgecolor="#9E9E9E", alpha=0.96),
+        zorder=10,
+    )
+
+
+
 def render_category_map(
     category_name: str,
     points: List[dict],
     uf_features: List[dict],
     out_path: str,
     now_utc: datetime,
+    open_counts: Dict[str, Dict[str, int]],
 ) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Patch
-    from matplotlib.lines import Line2D
 
     fig = plt.figure(figsize=(11.8, 11.2))
     ax = fig.add_subplot(111)
     ax.set_facecolor("white")
 
-    # contorno das UFs
     for feat in uf_features:
         for ring in geom_to_rings(feat.get("geometry")):
             xs = [p[0] for p in ring]
             ys = [p[1] for p in ring]
             ax.plot(xs, ys, color="#9E9E9E", linewidth=0.5, zorder=1)
 
-    # pontos por nível
     for nivel in ["Moderado", "Alto", "Muito Alto"]:
         subset = [p for p in points if norm(p.get("nivel")) == nivel]
         if not subset:
@@ -598,7 +723,6 @@ def render_category_map(
             linewidths=0.4,
             alpha=0.88,
             zorder=3,
-            label=nivel,
         )
 
     xmin, xmax, ymin, ymax = brazil_bbox_from_ufs(uf_features)
@@ -611,41 +735,20 @@ def render_category_map(
     ax.set_yticks([])
 
     pretty_name = "Hidrológicos" if category_name == "hidrologico" else "Geológicos"
-    period_start = now_utc - timedelta(hours=MAP_WINDOW_HOURS)
-
-    counts = count_levels_from_points(points)
     total_alertas = len(points)
 
     ax.set_title(
-        f"CEMADEN - Alertas {pretty_name} nas últimas {MAP_WINDOW_HOURS} horas\n"
-        f"Período: {fmt_dt_local(period_start)} até {fmt_dt_local(now_utc)}",
+        f"CEMADEN - Alertas {pretty_name} abertos\n"
+        f"Atualizado em: {fmt_dt_local(now_utc)}",
         fontsize=13,
         pad=16,
     )
 
-    legend_handles = [
-        Line2D([0], [0], marker="o", color="w", label="Moderado",
-               markerfacecolor=LEVEL_COLORS["Moderado"], markeredgecolor="black",
-               markeredgewidth=0.6, markersize=7),
-        Line2D([0], [0], marker="o", color="w", label="Alto",
-               markerfacecolor=LEVEL_COLORS["Alto"], markeredgecolor="black",
-               markeredgewidth=0.6, markersize=9),
-        Line2D([0], [0], marker="o", color="w", label="Muito Alto",
-               markerfacecolor=LEVEL_COLORS["Muito Alto"], markeredgecolor="black",
-               markeredgewidth=0.6, markersize=11),
-    ]
-    leg = ax.legend(
-        handles=legend_handles,
-        loc="lower left",
-        frameon=True,
-        framealpha=0.95,
-        title="Severidade",
-        fontsize=10,
-        title_fontsize=10,
-    )
-    leg.get_frame().set_edgecolor("#9E9E9E")
+    draw_dual_legend(ax, open_counts)
 
+    counts = count_levels_from_points(points)
     summary_lines = [
+        f"Categoria do mapa: {pretty_name}",
         f"Alertas plotados: {total_alertas}",
         f"Muito Alto: {counts['Muito Alto']}",
         f"Alto: {counts['Alto']}",
@@ -661,7 +764,7 @@ def render_category_map(
         va="bottom",
         fontsize=10,
         bbox=dict(boxstyle="round,pad=0.45", facecolor="white", edgecolor="#9E9E9E", alpha=0.96),
-        zorder=4,
+        zorder=10,
     )
 
     fig.tight_layout()
@@ -688,16 +791,16 @@ def main() -> int:
         now_utc,
     )
 
-    alerts_24h = filter_alerts_last_hours(state["alerts_history"], now_utc, MAP_WINDOW_HOURS)
-    alerts_24h.sort(key=lambda a: (a.get("created_at_iso") or "", a.get("cod_alerta") or ""))
+    current_vigentes = [a for a in current_alerts if a.get("status") == 1]
 
-    hid_points = build_category_points(alerts_24h, "hidrologico")
-    geo_points = build_category_points(alerts_24h, "geologico")
+    hid_points = build_category_points(current_vigentes, "hidrologico")
+    geo_points = build_category_points(current_vigentes, "geologico")
+    open_counts = count_open_alerts_by_category_and_level(current_vigentes)
 
     uf_features = load_uf_geojson(UF_GEOJSON_PATH)
 
-    out_hid = "/tmp/mapa_cemaden_hidrologico_24h.png"
-    out_geo = "/tmp/mapa_cemaden_geologico_24h.png"
+    out_hid = "/tmp/mapa_cemaden_hidrologico_abertos.png"
+    out_geo = "/tmp/mapa_cemaden_geologico_abertos.png"
 
     render_category_map(
         category_name="hidrologico",
@@ -705,6 +808,7 @@ def main() -> int:
         uf_features=uf_features,
         out_path=out_hid,
         now_utc=now_utc,
+        open_counts=open_counts,
     )
 
     render_category_map(
@@ -713,23 +817,23 @@ def main() -> int:
         uf_features=uf_features,
         out_path=out_geo,
         now_utc=now_utc,
+        open_counts=open_counts,
     )
 
-    current_vigentes = [a for a in current_alerts if a.get("status") == 1]
-    signature_24h = build_24h_signature(alerts_24h)
+    signature_open = build_open_signature(current_vigentes)
 
     should_send = True
     if SEND_ONLY_ON_CHANGE:
-        should_send = signature_24h != norm(state.get("last_24h_signature"))
+        should_send = signature_open != norm(state.get("last_open_signature"))
 
     if should_send:
-        tg_send_text(summarize_24h(alerts_24h, current_vigentes, now_utc))
+        tg_send_text(summarize_open_alerts(current_vigentes, now_utc))
 
         if SEND_MAPS:
             tg_send_photo(
                 out_hid,
                 caption=(
-                    "CEMADEN - Mapa Hidrológico 24h\n"
+                    "CEMADEN - Mapa Hidrológico de alertas abertos\n"
                     f"Gerado em: {fmt_dt_local(now_utc)}"
                 ),
             )
@@ -738,16 +842,16 @@ def main() -> int:
             tg_send_photo(
                 out_geo,
                 caption=(
-                    "CEMADEN - Mapa Geológico 24h\n"
+                    "CEMADEN - Mapa Geológico de alertas abertos\n"
                     f"Gerado em: {fmt_dt_local(now_utc)}"
                 ),
             )
     else:
-        print("Janela 24h sem alteração. Não vou reenviar Telegram.")
+        print("Sem alteração nos alertas abertos. Não vou reenviar Telegram.")
 
     state["last_conjunto"] = conjunto_atualizado
     state["last_run"] = now_utc.isoformat()
-    state["last_24h_signature"] = signature_24h
+    state["last_open_signature"] = signature_open
     save_state(STATE_PATH, state)
 
     return 0
