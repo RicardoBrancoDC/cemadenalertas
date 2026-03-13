@@ -1,24 +1,7 @@
 {
-  "last_conjunto": "12-03-2026 22:57:01 UTC",
-  "last_run": "2026-03-12T22:57:40.561979+00:00",
+  "last_conjunto": "13-03-2026 05:05:02 UTC",
+  "last_run": "2026-03-13T05:05:04.148427+00:00",
   "alerts_history": {
-    "1496": {
-      "cod_alerta": "1496",
-      "datahoracriacao": "2026-03-11 03:35:09.758",
-      "ult_atualizacao": "2026-03-11 03:35:09.758",
-      "codibge": "2902708",
-      "evento": "Risco Hidrológico - Alto",
-      "nivel": "Alto",
-      "status": 1,
-      "uf": "BA",
-      "municipio": "BARRA",
-      "latitude": -11.031844588599,
-      "longitude": -43.366821769166,
-      "created_at_iso": "2026-03-11T03:35:09.758000+00:00",
-      "updated_at_iso": "2026-03-11T03:35:09.758000+00:00",
-      "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
-    },
     "1502": {
       "cod_alerta": "1502",
       "datahoracriacao": "2026-03-11 16:17:22.135",
@@ -34,7 +17,7 @@
       "created_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "updated_at_iso": "2026-03-11T16:17:22.135000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1503": {
       "cod_alerta": "1503",
@@ -85,7 +68,7 @@
       "created_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "updated_at_iso": "2026-03-11T16:41:23.555000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1506": {
       "cod_alerta": "1506",
@@ -136,7 +119,7 @@
       "created_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "updated_at_iso": "2026-03-11T17:31:53.085000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1508": {
       "cod_alerta": "1508",
@@ -170,7 +153,7 @@
       "created_at_iso": "2026-03-11T22:02:04.183000+00:00",
       "updated_at_iso": "2026-03-11T22:02:04.183000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1511": {
       "cod_alerta": "1511",
@@ -238,7 +221,7 @@
       "created_at_iso": "2026-03-12T00:47:35.605000+00:00",
       "updated_at_iso": "2026-03-12T00:47:35.605000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1515": {
       "cod_alerta": "1515",
@@ -255,7 +238,7 @@
       "created_at_iso": "2026-03-12T01:36:17.974000+00:00",
       "updated_at_iso": "2026-03-12T01:36:17.974000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1516": {
       "cod_alerta": "1516",
@@ -272,7 +255,7 @@
       "created_at_iso": "2026-03-12T03:27:33.024000+00:00",
       "updated_at_iso": "2026-03-12T03:27:33.024000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1517": {
       "cod_alerta": "1517",
@@ -289,7 +272,7 @@
       "created_at_iso": "2026-03-12T03:45:50.763000+00:00",
       "updated_at_iso": "2026-03-12T03:45:50.763000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1518": {
       "cod_alerta": "1518",
@@ -306,7 +289,7 @@
       "created_at_iso": "2026-03-12T03:56:30.635000+00:00",
       "updated_at_iso": "2026-03-12T03:56:30.635000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1519": {
       "cod_alerta": "1519",
@@ -323,7 +306,7 @@
       "created_at_iso": "2026-03-12T03:59:04.225000+00:00",
       "updated_at_iso": "2026-03-12T03:59:04.225000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1521": {
       "cod_alerta": "1521",
@@ -340,7 +323,7 @@
       "created_at_iso": "2026-03-12T05:45:25.684000+00:00",
       "updated_at_iso": "2026-03-12T05:45:25.684000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1520": {
       "cod_alerta": "1520",
@@ -357,7 +340,7 @@
       "created_at_iso": "2026-03-12T04:57:52.781000+00:00",
       "updated_at_iso": "2026-03-12T05:53:53.072000+00:00",
       "first_seen_at": "2026-03-12T10:21:55.076157+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1522": {
       "cod_alerta": "1522",
@@ -374,7 +357,7 @@
       "created_at_iso": "2026-03-12T11:54:35.698000+00:00",
       "updated_at_iso": "2026-03-12T11:54:35.698000+00:00",
       "first_seen_at": "2026-03-12T18:10:07.804799+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1523": {
       "cod_alerta": "1523",
@@ -391,7 +374,7 @@
       "created_at_iso": "2026-03-12T14:18:56.662000+00:00",
       "updated_at_iso": "2026-03-12T14:18:56.662000+00:00",
       "first_seen_at": "2026-03-12T18:10:07.804799+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1524": {
       "cod_alerta": "1524",
@@ -408,7 +391,7 @@
       "created_at_iso": "2026-03-12T14:58:06.151000+00:00",
       "updated_at_iso": "2026-03-12T14:58:06.151000+00:00",
       "first_seen_at": "2026-03-12T18:10:07.804799+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1525": {
       "cod_alerta": "1525",
@@ -425,7 +408,7 @@
       "created_at_iso": "2026-03-12T15:33:47.811000+00:00",
       "updated_at_iso": "2026-03-12T15:33:47.811000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1526": {
       "cod_alerta": "1526",
@@ -442,7 +425,7 @@
       "created_at_iso": "2026-03-12T17:08:16.738000+00:00",
       "updated_at_iso": "2026-03-12T17:08:16.738000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1527": {
       "cod_alerta": "1527",
@@ -459,7 +442,7 @@
       "created_at_iso": "2026-03-12T17:17:04.896000+00:00",
       "updated_at_iso": "2026-03-12T17:17:04.896000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1528": {
       "cod_alerta": "1528",
@@ -476,7 +459,7 @@
       "created_at_iso": "2026-03-12T17:19:13.165000+00:00",
       "updated_at_iso": "2026-03-12T17:19:13.165000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1529": {
       "cod_alerta": "1529",
@@ -493,7 +476,7 @@
       "created_at_iso": "2026-03-12T17:24:43.554000+00:00",
       "updated_at_iso": "2026-03-12T17:24:43.554000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1530": {
       "cod_alerta": "1530",
@@ -510,7 +493,7 @@
       "created_at_iso": "2026-03-12T17:26:12.487000+00:00",
       "updated_at_iso": "2026-03-12T17:26:12.487000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1531": {
       "cod_alerta": "1531",
@@ -527,7 +510,7 @@
       "created_at_iso": "2026-03-12T17:26:55.057000+00:00",
       "updated_at_iso": "2026-03-12T17:26:55.057000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1532": {
       "cod_alerta": "1532",
@@ -544,7 +527,7 @@
       "created_at_iso": "2026-03-12T17:40:36.245000+00:00",
       "updated_at_iso": "2026-03-12T17:40:36.245000+00:00",
       "first_seen_at": "2026-03-12T21:05:32.338652+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1533": {
       "cod_alerta": "1533",
@@ -561,7 +544,7 @@
       "created_at_iso": "2026-03-12T18:29:53.229000+00:00",
       "updated_at_iso": "2026-03-12T18:29:53.229000+00:00",
       "first_seen_at": "2026-03-12T22:57:40.561979+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1534": {
       "cod_alerta": "1534",
@@ -578,7 +561,7 @@
       "created_at_iso": "2026-03-12T18:42:45.703000+00:00",
       "updated_at_iso": "2026-03-12T18:42:45.703000+00:00",
       "first_seen_at": "2026-03-12T22:57:40.561979+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     },
     "1535": {
       "cod_alerta": "1535",
@@ -595,8 +578,76 @@
       "created_at_iso": "2026-03-12T18:43:36.596000+00:00",
       "updated_at_iso": "2026-03-12T18:43:36.596000+00:00",
       "first_seen_at": "2026-03-12T22:57:40.561979+00:00",
-      "last_seen_at": "2026-03-12T22:57:40.561979+00:00"
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
+    },
+    "1536": {
+      "cod_alerta": "1536",
+      "datahoracriacao": "2026-03-12 23:04:16.192",
+      "ult_atualizacao": "2026-03-12 23:04:16.192",
+      "codibge": "3504107",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "SP",
+      "municipio": "ATIBAIA",
+      "latitude": -23.123262432441,
+      "longitude": -46.586787635839,
+      "created_at_iso": "2026-03-12T23:04:16.192000+00:00",
+      "updated_at_iso": "2026-03-12T23:04:16.192000+00:00",
+      "first_seen_at": "2026-03-13T05:05:04.148427+00:00",
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
+    },
+    "1537": {
+      "cod_alerta": "1537",
+      "datahoracriacao": "2026-03-13 01:01:29.387",
+      "ult_atualizacao": "2026-03-13 01:01:29.387",
+      "codibge": "3509502",
+      "evento": "Risco Hidrológico - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "SP",
+      "municipio": "CAMPINAS",
+      "latitude": -22.883760232437,
+      "longitude": -47.043782026716,
+      "created_at_iso": "2026-03-13T01:01:29.387000+00:00",
+      "updated_at_iso": "2026-03-13T01:01:29.387000+00:00",
+      "first_seen_at": "2026-03-13T05:05:04.148427+00:00",
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
+    },
+    "1538": {
+      "cod_alerta": "1538",
+      "datahoracriacao": "2026-03-13 01:30:51.29",
+      "ult_atualizacao": "2026-03-13 01:30:51.29",
+      "codibge": "3106705",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "BETIM",
+      "latitude": -19.947673574221,
+      "longitude": -44.199267165388,
+      "created_at_iso": "2026-03-13T01:30:51.290000+00:00",
+      "updated_at_iso": "2026-03-13T01:30:51.290000+00:00",
+      "first_seen_at": "2026-03-13T05:05:04.148427+00:00",
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
+    },
+    "1539": {
+      "cod_alerta": "1539",
+      "datahoracriacao": "2026-03-13 01:45:05.433",
+      "ult_atualizacao": "2026-03-13 01:45:05.433",
+      "codibge": "3129806",
+      "evento": "Movimentos de Massa - Moderado",
+      "nivel": "Moderado",
+      "status": 1,
+      "uf": "MG",
+      "municipio": "IBIRITÉ",
+      "latitude": -20.023539077525,
+      "longitude": -44.068542524813,
+      "created_at_iso": "2026-03-13T01:45:05.433000+00:00",
+      "updated_at_iso": "2026-03-13T01:45:05.433000+00:00",
+      "first_seen_at": "2026-03-13T05:05:04.148427+00:00",
+      "last_seen_at": "2026-03-13T05:05:04.148427+00:00"
     }
   },
-  "last_24h_signature": "1511|2026-03-11T23:04:49.790000+00:00|Moderado|Risco Hidrológico - Moderado||1512|2026-03-11T23:15:07.088000+00:00|Moderado|Risco Hidrológico - Moderado||1513|2026-03-12T00:44:28.432000+00:00|Moderado|Risco Hidrológico - Moderado||1514|2026-03-12T00:47:35.605000+00:00|Moderado|Movimentos de Massa - Moderado||1515|2026-03-12T01:36:17.974000+00:00|Moderado|Movimentos de Massa - Moderado||1516|2026-03-12T03:27:33.024000+00:00|Moderado|Movimentos de Massa - Moderado||1517|2026-03-12T03:45:50.763000+00:00|Moderado|Risco Hidrológico - Moderado||1518|2026-03-12T03:56:30.635000+00:00|Moderado|Risco Hidrológico - Moderado||1519|2026-03-12T03:59:04.225000+00:00|Moderado|Risco Hidrológico - Moderado||1520|2026-03-12T04:57:52.781000+00:00|Alto|Risco Hidrológico - Alto||1521|2026-03-12T05:45:25.684000+00:00|Moderado|Movimentos de Massa - Moderado||1522|2026-03-12T11:54:35.698000+00:00|Moderado|Risco Hidrológico - Moderado||1523|2026-03-12T14:18:56.662000+00:00|Moderado|Risco Hidrológico - Moderado||1524|2026-03-12T14:58:06.151000+00:00|Moderado|Risco Hidrológico - Moderado||1525|2026-03-12T15:33:47.811000+00:00|Moderado|Risco Hidrológico - Moderado||1526|2026-03-12T17:08:16.738000+00:00|Moderado|Movimentos de Massa - Moderado||1527|2026-03-12T17:17:04.896000+00:00|Moderado|Risco Hidrológico - Moderado||1528|2026-03-12T17:19:13.165000+00:00|Moderado|Risco Hidrológico - Moderado||1529|2026-03-12T17:24:43.554000+00:00|Moderado|Risco Hidrológico - Moderado||1530|2026-03-12T17:26:12.487000+00:00|Moderado|Risco Hidrológico - Moderado||1531|2026-03-12T17:26:55.057000+00:00|Moderado|Risco Hidrológico - Moderado||1532|2026-03-12T17:40:36.245000+00:00|Moderado|Movimentos de Massa - Moderado||1533|2026-03-12T18:29:53.229000+00:00|Moderado|Risco Hidrológico - Moderado||1534|2026-03-12T18:42:45.703000+00:00|Moderado|Movimentos de Massa - Moderado||1535|2026-03-12T18:43:36.596000+00:00|Moderado|Risco Hidrológico - Moderado"
+  "last_24h_signature": "1521|2026-03-12T05:45:25.684000+00:00|Moderado|Movimentos de Massa - Moderado||1522|2026-03-12T11:54:35.698000+00:00|Moderado|Risco Hidrológico - Moderado||1523|2026-03-12T14:18:56.662000+00:00|Moderado|Risco Hidrológico - Moderado||1524|2026-03-12T14:58:06.151000+00:00|Moderado|Risco Hidrológico - Moderado||1525|2026-03-12T15:33:47.811000+00:00|Moderado|Risco Hidrológico - Moderado||1526|2026-03-12T17:08:16.738000+00:00|Moderado|Movimentos de Massa - Moderado||1527|2026-03-12T17:17:04.896000+00:00|Moderado|Risco Hidrológico - Moderado||1528|2026-03-12T17:19:13.165000+00:00|Moderado|Risco Hidrológico - Moderado||1529|2026-03-12T17:24:43.554000+00:00|Moderado|Risco Hidrológico - Moderado||1530|2026-03-12T17:26:12.487000+00:00|Moderado|Risco Hidrológico - Moderado||1531|2026-03-12T17:26:55.057000+00:00|Moderado|Risco Hidrológico - Moderado||1532|2026-03-12T17:40:36.245000+00:00|Moderado|Movimentos de Massa - Moderado||1533|2026-03-12T18:29:53.229000+00:00|Moderado|Risco Hidrológico - Moderado||1534|2026-03-12T18:42:45.703000+00:00|Moderado|Movimentos de Massa - Moderado||1535|2026-03-12T18:43:36.596000+00:00|Moderado|Risco Hidrológico - Moderado||1536|2026-03-12T23:04:16.192000+00:00|Moderado|Movimentos de Massa - Moderado||1537|2026-03-13T01:01:29.387000+00:00|Moderado|Risco Hidrológico - Moderado||1538|2026-03-13T01:30:51.290000+00:00|Moderado|Movimentos de Massa - Moderado||1539|2026-03-13T01:45:05.433000+00:00|Moderado|Movimentos de Massa - Moderado"
 }
