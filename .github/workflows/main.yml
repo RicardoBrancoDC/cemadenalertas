@@ -2,7 +2,7 @@ name: CEMADEN Watch
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -21,40 +21,35 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install matplotlib
 
-      - name: Ensure state dir exists
+      - name: Create state directory
         run: |
           mkdir -p state
 
-      - name: Run watcher
+      - name: Run CEMADEN watcher
         env:
-          UF_GEOJSON_PATH: "resources/br_uf.geojson"
+          UF_GEOJSON_PATH: resources/br_uf.geojson
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          CEMADEN_URL: "https://painelalertas.cemaden.gov.br/wsAlertas2"
-          STATE_PATH: "state/cemaden_seen.json"
-          SLEEP_BETWEEN_SENDS_SEC: "1.2"
-          TG_MAX_RETRIES: "6"
-          TG_EXTRA_BACKOFF_SEC: "1.0"
-          REQUEST_TIMEOUT_SEC: "30"
-          SEND_MAPS: "1"
-          HISTORY_HOURS: "72"
-          SEND_ONLY_ON_CHANGE: "1"
+          CEMADEN_URL: https://painelalertas.cemaden.gov.br/wsAlertas2
+          STATE_PATH: state/cemaden_seen.json
+          SLEEP_BETWEEN_SENDS_SEC: 1.2
+          TG_MAX_RETRIES: 6
+          TG_EXTRA_BACKOFF_SEC: 1.0
+          REQUEST_TIMEOUT_SEC: 30
+          SEND_MAPS: 1
+          SEND_ONLY_ON_CHANGE: 1
         run: |
           python cemaden_watch.py
 
-      - name: Commit state if changed
+      - name: Commit updated state
         run: |
-          if git status --porcelain | grep -q "state/cemaden_seen.json"; then
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
-            git add state/cemaden_seen.json
-            git commit -m "Update CEMADEN state"
-            git push
-          else
-            echo "No state changes."
-          fi
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add state/cemaden_seen.json || true
+          git commit -m "update cemaden state" || true
+          git push
