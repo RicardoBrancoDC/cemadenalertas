@@ -42,8 +42,7 @@ jobs:
           TG_EXTRA_BACKOFF_SEC: "1.0"
           REQUEST_TIMEOUT_SEC: "30"
           SEND_MAPS: "1"
-          HISTORY_HOURS: "48"
-          MAP_WINDOW_HOURS: "24"
+          HISTORY_HOURS: "72"
           SEND_ONLY_ON_CHANGE: "1"
         run: |
           python cemaden_watch.py
