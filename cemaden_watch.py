@@ -374,11 +374,12 @@ def build_open_signature(alerts: List[dict]) -> str:
 # =========================
 # Legenda
 # =========================
-
 def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
-    x = 0.02
-    y_top = 0.38
-    line_gap = 0.043
+    x = 0.015
+    y = 0.015
+    box_width = 0.24
+    box_height = 0.34
+    line_gap = 0.042
 
     rows = [
         ("Resumo dos alertas abertos", None, None),
@@ -392,29 +393,28 @@ def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
         ("Moderado", "geologico", "Moderado"),
     ]
 
-    box_height = 0.42
-    box_width = 0.24
-
     patch = FancyBboxPatch(
-        (x - 0.01, y_top - 0.01),
+        (x, y),
         box_width,
         box_height,
-        boxstyle="round,pad=0.015",
+        boxstyle="round,pad=0.012",
         transform=ax.transAxes,
         facecolor="white",
         edgecolor="#bcbcbc",
         linewidth=0.8,
-        alpha=0.90,
+        alpha=0.92,
         zorder=20,
     )
     ax.add_patch(patch)
 
-    y = y_top + box_height - 0.01
+    tx = x + 0.015
+    ty = y + box_height - 0.015
+
     for idx, (label, cat, lvl) in enumerate(rows):
         if idx == 0:
             ax.text(
-                x,
-                y,
+                tx,
+                ty,
                 label,
                 transform=ax.transAxes,
                 fontsize=9.5,
@@ -423,51 +423,51 @@ def add_legend_box(ax, open_counts: Dict[str, Dict[str, int]]) -> None:
                 ha="left",
                 zorder=21,
             )
-            y -= line_gap * 1.2
+            ty -= line_gap * 1.15
             continue
 
         if cat is None and lvl is None:
             ax.text(
-                x,
-                y,
+                tx,
+                ty,
                 label,
                 transform=ax.transAxes,
-                fontsize=8.8,
+                fontsize=9.2,
                 fontweight="bold",
                 va="top",
                 ha="left",
                 zorder=21,
             )
-            y -= line_gap
+            ty -= line_gap
             continue
 
         color = LEVEL_COLORS[lvl]
         count = open_counts[cat][lvl]
 
         ax.text(
-            x,
-            y,
+            tx,
+            ty,
             "●",
             color=color,
             transform=ax.transAxes,
-            fontsize=12,
+            fontsize=11,
             va="top",
             ha="left",
             zorder=21,
         )
+
         ax.text(
-            x + 0.025,
-            y,
+            tx + 0.025,
+            ty,
             f"{label}: {count}",
             color="black",
             transform=ax.transAxes,
-            fontsize=9,
+            fontsize=8.8,
             va="top",
             ha="left",
             zorder=21,
         )
-        y -= line_gap
-
+        ty -= line_gap
 
 # =========================
 # Plot
